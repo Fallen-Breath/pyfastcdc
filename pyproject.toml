@@ -1,0 +1,18 @@
+[project]
+name = "fastcdc2020"
+version = "0.0.1"
+description = "FastCDC 2020 implementation in Python"
+authors = [
+    {name = "Your Name", email = "your@email.com"}
+]
+readme = "README.md"
+requires-python = ">=3.6"
+dependencies = []
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["fastcdc2020"]
+namespaces = false
