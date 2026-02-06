@@ -1,0 +1,5 @@
+recursive-include fastcdc2020/cy *.pyx *.pxd *.pyi
+
+include fastcdc2020/py.typed
+include LICENSE README.md
+include requirements.txt requirements.dev.txt

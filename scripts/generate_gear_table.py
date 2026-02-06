@@ -50,7 +50,9 @@ cdef uint64_t[256] GEAR_LS = [
 '''.lstrip()
 
 TEMPLATE_PY = '''
-from typing import List, Final
+from typing import List
+
+from typing_extensions import Final
 
 MASKS: Final[List[int]] = {{MASKS}}
 

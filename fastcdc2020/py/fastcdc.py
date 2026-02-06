@@ -2,7 +2,8 @@ import dataclasses
 import mmap
 from io import BufferedReader
 from pathlib import Path
-from typing import Optional, Literal, ClassVar, Protocol, Union, Iterator, List, ContextManager, Tuple
+from typing import Optional, ClassVar, Union, Iterator, List, ContextManager, Tuple
+from typing_extensions import Literal, Protocol
 
 from fastcdc2020.py.constants import MASKS, GEAR, GEAR_LS
 

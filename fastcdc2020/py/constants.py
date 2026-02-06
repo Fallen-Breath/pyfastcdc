@@ -1,4 +1,6 @@
-from typing import List, Final
+from typing import List
+
+from typing_extensions import Final
 
 MASKS: Final[List[int]] = [
 	0,                   # padding
