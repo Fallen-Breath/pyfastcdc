@@ -2,8 +2,8 @@ from pathlib import Path
 from typing import Optional, Union
 
 import cython
+from cpython.mem cimport PyMem_Malloc, PyMem_Free
 from libc.stdint cimport uint8_t, uint32_t, uint64_t
-from libc.stdlib cimport malloc, free
 from libc.string cimport memmove
 
 from fastcdc2020 import utils, NormalizedChunking, Chunk, BinaryStreamReader, ChunkIterator, FileHoldingChunkIterator
@@ -73,8 +73,8 @@ cdef class FastCDC2020:
 		self.gear_holder = NULL
 		self.gear_holder_ls = NULL
 		if seed > 0:
-			self.gear_holder = <uint64_t*>malloc(256 * sizeof(uint64_t))
-			self.gear_holder_ls = <uint64_t*>malloc(256 * sizeof(uint64_t))
+			self.gear_holder = <uint64_t*>PyMem_Malloc(256 * sizeof(uint64_t))
+			self.gear_holder_ls = <uint64_t*>PyMem_Malloc(256 * sizeof(uint64_t))
 			for i in range(256):
 				self.gear_holder[i] = GEAR[i] ^ seed
 				self.gear_holder_ls[i] = GEAR_LS[i] ^ seed
@@ -83,10 +83,10 @@ cdef class FastCDC2020:
 
 	def __dealloc__(self):
 		if self.gear_holder:
-			free(self.gear_holder)
+			PyMem_Free(self.gear_holder)
 			self.gear_holder = NULL
 		if self.gear_holder_ls:
-			free(self.gear_holder_ls)
+			PyMem_Free(self.gear_holder_ls)
 			self.gear_holder_ls = NULL
 
 	def cut_buf(self, buf: Union[bytes, bytearray, memoryview]) -> ChunkIterator:
