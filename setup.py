@@ -1,9 +1,11 @@
+import ast
+import functools
+import sys
 from pathlib import Path
 from typing import List
 
-from Cython.Build import cythonize
-from setuptools import setup, find_packages
 from setuptools import __version__ as setuptools_version
+from setuptools import setup, find_packages
 
 HERE = Path(__file__).absolute().parent
 
@@ -23,10 +25,29 @@ def read_requirements(file_name: str) -> List[str]:
 	return requirements
 
 
+@functools.lru_cache(None)
 def get_version() -> str:
-	from fastcdc2020 import __version__
-	return __version__
+	tree = ast.parse(read_file('fastcdc2020/__init__.py'))
+	for stmt in tree.body:
+		if isinstance(stmt, ast.Assign) and stmt.targets[0].id == '__version__':
+			assert isinstance(stmt.value, ast.Constant)
+			version_str = stmt.value.value
+			assert isinstance(version_str, str)
+			print(f'__version__ = {version_str}')
+			return version_str
+	raise RuntimeError('Cannot find __version__')
 
+
+print(sys.argv)
+if "clean" in sys.argv or "sdist" in sys.argv:  # no cython stuffs in sdist
+	# btw pandas uses this `sys.argv` hack too: https://github.com/pandas-dev/pandas/blob/78242b3f6a256e3638a655f54bb37464f13db585/setup.py#L401
+	ext_modules = []
+else:
+	from Cython.Build import cythonize
+	ext_modules = cythonize(
+		'fastcdc2020/cy/*.pyx',
+		compiler_directives={'language_level': '3'},
+	)
 
 print(f'setuptools_version: {setuptools_version}')
 use_license_expression = setuptools_version.split('.') >= '77.0.0'.split('.')
@@ -63,9 +84,5 @@ setup(
 		'Programming Language :: Python :: 3.13',
 		'Programming Language :: Python :: 3.14',
 	],
-
-	ext_modules=cythonize(
-		'fastcdc2020/cy/*.pyx',
-		compiler_directives={'language_level': '3'}
-	),
+	ext_modules=ext_modules,
 )

@@ -1,4 +1,5 @@
 recursive-include fastcdc2020/cy *.pyx *.pxd *.pyi
+recursive-exclude fastcdc2020/cy *.c *.h
 
 include fastcdc2020/py.typed
 include LICENSE README.md
