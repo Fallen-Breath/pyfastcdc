@@ -1,6 +1,7 @@
+import array
 import dataclasses
 from pathlib import Path
-from typing import Optional, ClassVar, Union, Iterator, List
+from typing import Optional, ClassVar, Union, Iterator
 
 from fastcdc2020 import utils, NormalizedChunking, Chunk, BinaryStreamReader
 from fastcdc2020.py.constants import MASKS, GEAR, GEAR_LS
@@ -19,8 +20,8 @@ class _Config:
 	mask_l: int
 	mask_s_ls: int
 	mask_l_ls: int
-	gear: List[int]
-	gear_ls: List[int]
+	gear: 'array.array[int]'
+	gear_ls: 'array.array[int]'
 
 
 class FastCDC:
@@ -62,8 +63,8 @@ class FastCDC:
 		gear = GEAR
 		gear_ls = GEAR_LS
 		if seed > 0:
-			gear = [(x ^ seed) & _UINT64_MASK for x in GEAR]
-			gear_ls = [(x ^ seed) & _UINT64_MASK for x in GEAR_LS]
+			gear = array.array('Q', [(x ^ seed) & _UINT64_MASK for x in GEAR])
+			gear_ls = array.array('Q', [(x ^ seed) & _UINT64_MASK for x in GEAR_LS])
 
 		self.config = _Config(
 			avg_size=avg_size,
@@ -104,30 +105,35 @@ def _cut_gear(config: _Config, buf: memoryview) -> _CutResult:
 	elif remaining < center:
 		center = remaining
 
-	idx = config.min_size // 2
-	gear_hash = 0
+	# speed up variable lookup
 	gear = config.gear
 	gear_ls = config.gear_ls
+	mask_s = config.mask_s
+	mask_l = config.mask_l
+	mask_s_ls = config.mask_s_ls
+	mask_l_ls = config.mask_l_ls
+	mask64 = _UINT64_MASK
 
-	while idx < center // 2:
-		pos = idx * 2
-		gear_hash = ((gear_hash << 2) + gear_ls[buf[pos]]) & _UINT64_MASK
-		if (gear_hash & config.mask_s_ls) == 0:
-			return _CutResult(gear_hash, pos)
-		gear_hash = (gear_hash + gear[buf[pos + 1]]) & _UINT64_MASK
-		if (gear_hash & config.mask_s) == 0:
-			return _CutResult(gear_hash, pos + 1)
-		idx += 1
+	gear_hash = 0
+	start_pos = (config.min_size // 2) * 2
+	mid_pos = (center // 2) * 2
+	end_pos = (remaining // 2) * 2
 
-	while idx < remaining // 2:
-		pos = idx * 2
-		gear_hash = ((gear_hash << 2) + gear_ls[buf[pos]]) & _UINT64_MASK
-		if (gear_hash & config.mask_l_ls) == 0:
+	for pos in range(start_pos, mid_pos, 2):
+		gear_hash = ((gear_hash << 2) + gear_ls[buf[pos]]) & mask64
+		if not (gear_hash & mask_s_ls):
 			return _CutResult(gear_hash, pos)
-		gear_hash = (gear_hash + gear[buf[pos + 1]]) & _UINT64_MASK
-		if (gear_hash & config.mask_l) == 0:
+		gear_hash = (gear_hash + gear[buf[pos + 1]]) & mask64
+		if not (gear_hash & mask_s):
 			return _CutResult(gear_hash, pos + 1)
-		idx += 1
+
+	for pos in range(mid_pos, end_pos, 2):
+		gear_hash = ((gear_hash << 2) + gear_ls[buf[pos]]) & mask64
+		if not (gear_hash & mask_l_ls):
+			return _CutResult(gear_hash, pos)
+		gear_hash = (gear_hash + gear[buf[pos + 1]]) & mask64
+		if not (gear_hash & mask_l):
+			return _CutResult(gear_hash, pos + 1)
 
 	return _CutResult(gear_hash, remaining)
 

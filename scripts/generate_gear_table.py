@@ -50,19 +50,19 @@ cdef uint64_t[256] GEAR_LS = [
 '''.lstrip()
 
 TEMPLATE_PY = '''
-from typing import List
+import array
 
 from typing_extensions import Final
 
-MASKS: Final[List[int]] = {{MASKS}}
+MASKS: Final['array.array[int]'] = array.array('Q', {{MASKS}})
 
-GEAR: Final[List[int]] = [
+GEAR: Final['array.array[int]'] = array.array('Q', [
 {{GEAR}}
-]
+])
 
-GEAR_LS: Final[List[int]] = [
+GEAR_LS: Final['array.array[int]'] = array.array('Q', [
 {{GEAR_LS}}
-]
+])
 '''.lstrip()
 
 
