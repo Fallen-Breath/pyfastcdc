@@ -3,17 +3,13 @@ __version__ = '0.0.1'
 __all__ = [
 	'BinaryStreamReader',
 	'Chunk',
-	'ChunkIterator',
-	'FileHoldingChunkIterator',
-	'NormalizedChunking',
 	'FastCDC',
+	'NormalizedChunking',
 ]
 
 from fastcdc2020.common import (
 	BinaryStreamReader,
 	Chunk,
-	ChunkIterator,
-	FileHoldingChunkIterator,
 	NormalizedChunking,
 )
 

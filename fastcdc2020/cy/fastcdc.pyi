@@ -1,7 +1,7 @@
 from pathlib import Path
-from typing import Optional, Union
+from typing import Optional, Union, Iterator
 
-from fastcdc2020.common import NormalizedChunking, ChunkIterator, FileHoldingChunkIterator, BinaryStreamReader
+from fastcdc2020.common import NormalizedChunking, BinaryStreamReader, Chunk
 
 
 class FastCDC:
@@ -16,11 +16,11 @@ class FastCDC:
 	):
 		...
 
-	def cut_buf(self, buf: Union[bytes, bytearray, memoryview]) -> ChunkIterator:
+	def cut_buf(self, buf: Union[bytes, bytearray, memoryview]) -> Iterator[Chunk]:
 		...
 
-	def cut_file(self, file_path: Union[str, bytes, Path]) -> FileHoldingChunkIterator:
+	def cut_file(self, file_path: Union[str, bytes, Path]) -> Iterator[Chunk]:
 		...
 
-	def cut_stream(self, stream: BinaryStreamReader) -> ChunkIterator:
+	def cut_stream(self, stream: BinaryStreamReader) -> Iterator[Chunk]:
 		...

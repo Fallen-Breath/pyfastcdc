@@ -34,40 +34,22 @@ def create_readinto_func(stream: BinaryStreamReader) -> ReadintoFunc:
 
 class MmapFile:
 	def __init__(self, file_path: Union[str, bytes, Path]):
-		self.file_obj: Optional[io.BufferedReader] = None
-		self.mmap_obj: Optional[mmap.mmap] = None
-		self.data = memoryview(b'')
+		self.__mmap_obj: Optional[mmap.mmap] = None
+		self.__data = memoryview(b'')
 		self.__open(file_path)
 
 	def __open(self, file_path: Union[str, bytes, Path]):
 		file_size = os.path.getsize(file_path)
-		self.file_obj = open(file_path, 'rb')
-
 		if file_size == 0:
-			self.close()
 			return
 
-		try:
-			self.mmap_obj = mmap.mmap(self.file_obj.fileno(), length=file_size, access=mmap.ACCESS_READ)
-			self.data = memoryview(self.mmap_obj)
-		except:
-			self.close()
-			raise
+		with open(file_path, 'rb') as f:
+			self.__mmap_obj = mmap.mmap(f.fileno(), length=file_size, access=mmap.ACCESS_READ)
+			self.__data = memoryview(self.__mmap_obj)
 
-	def close(self):
-		# If we close mmap_obj here, "BufferError: cannot close exported pointers exist" will possibly be thrown,
-		# since the caller might still have reference of the output Chunk object in local variables,
-		# which contains memoryview reference to this mmap_obj.
-		# So just don't close the mmap_obj here, let GC handle it
-		if self.file_obj and not self.file_obj.closed:
-			self.file_obj.close()
-		self.file_obj = None
-
-	def __enter__(self):
-		return self
-
-	def __exit__(self, exc_type, exc_val, exc_tb):
-		self.close()
+	@property
+	def data(self) -> memoryview:
+		return self.__data
 
 
 def create_mmap_from_file(file_path: Union[str, bytes, Path]) -> MmapFile:

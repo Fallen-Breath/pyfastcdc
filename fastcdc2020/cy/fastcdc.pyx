@@ -1,12 +1,12 @@
 from pathlib import Path
-from typing import Optional, Union
+from typing import Optional, Union, Iterator
 
 import cython
 from cpython.mem cimport PyMem_Malloc, PyMem_Free
 from libc.stdint cimport uint8_t, uint32_t, uint64_t
 from libc.string cimport memmove
 
-from fastcdc2020 import utils, NormalizedChunking, Chunk, BinaryStreamReader, ChunkIterator, FileHoldingChunkIterator
+from fastcdc2020 import utils, NormalizedChunking, Chunk, BinaryStreamReader
 from fastcdc2020.cy.constants cimport GEAR, GEAR_LS, MASKS
 from fastcdc2020.utils import ReadintoFunc
 
@@ -89,13 +89,13 @@ cdef class FastCDC:
 			PyMem_Free(self.gear_holder_ls)
 			self.gear_holder_ls = NULL
 
-	def cut_buf(self, buf: Union[bytes, bytearray, memoryview]) -> ChunkIterator:
+	def cut_buf(self, buf: Union[bytes, bytearray, memoryview]) -> Iterator[Chunk]:
 		return BufferChunkSplitter(self, utils.create_memoryview_from_buffer(buf))
 
-	def cut_file(self, file_path: Union[str, bytes, Path]) -> FileHoldingChunkIterator:
+	def cut_file(self, file_path: Union[str, bytes, Path]) -> Iterator[Chunk]:
 		return FileChunkSplitter(self, file_path)
 
-	def cut_stream(self, stream: BinaryStreamReader) -> ChunkIterator:
+	def cut_stream(self, stream: BinaryStreamReader) -> Iterator[Chunk]:
 		return StreamChunkSplitter(self, utils.create_readinto_func(stream))
 
 
@@ -186,15 +186,6 @@ cdef class FileChunkSplitter(BufferChunkSplitter):
 	def __init__(self, fastcdc: FastCDC, file_path: Union[str, bytes, Path]):
 		self.mmap_file = utils.create_mmap_from_file(file_path)
 		BufferChunkSplitter.__init__(self, fastcdc, self.mmap_file.data)
-
-	def __enter__(self):
-		return self
-
-	def __exit__(self, exc_type, exc_val, exc_tb):
-		self.close()
-
-	def close(self):
-		self.mmap_file.close()
 
 
 cdef class StreamChunkSplitter:
