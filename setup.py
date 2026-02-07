@@ -3,6 +3,7 @@ from typing import List
 
 from Cython.Build import cythonize
 from setuptools import setup, find_packages
+from setuptools import __version__ as setuptools_version
 
 HERE = Path(__file__).absolute().parent
 
@@ -27,6 +28,8 @@ def get_version() -> str:
 	return __version__
 
 
+print(f'setuptools_version: {setuptools_version}')
+use_license_expression = setuptools_version.split('.') >= '77.0.0'.split('.')
 setup(
 	name='fastcdc2020',
 	version=get_version(),
@@ -46,8 +49,9 @@ setup(
 	extras_require={
 		'dev': read_requirements('requirements.dev.txt'),
 	},
+	**({'license': 'MIT'} if use_license_expression else {}),
 	classifiers=[
-		'License :: OSI Approved :: MIT License',
+		*(['License :: OSI Approved :: MIT License'] if not use_license_expression else []),
 		'Programming Language :: Python',
 		'Programming Language :: Python :: 3.6',
 		'Programming Language :: Python :: 3.7',
