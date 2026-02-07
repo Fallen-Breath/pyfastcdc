@@ -122,23 +122,27 @@ cdef _CutResult _cut_gear(const _Config* config, const uint8_t* buf, uint64_t bu
 	cdef uint64_t mid_pos = (center // 2) * 2
 	cdef uint64_t end_pos = (remaining // 2) * 2
 
+	cdef uint64_t mask_s = config.mask_s
+	cdef uint64_t mask_s_ls = config.mask_s_ls
+	cdef uint64_t mask_l = config.mask_l
+	cdef uint64_t mask_l_ls = config.mask_l_ls
 	cdef const uint64_t* gear_ptr = config.gear
 	cdef const uint64_t* gear_ls_ptr = config.gear_ls
 
 	for pos in range(start_pos, mid_pos, 2):
 		gear_hash = (gear_hash << 2) + gear_ls_ptr[buf[pos]]
-		if (gear_hash & config.mask_s_ls) == 0:
+		if (gear_hash & mask_s_ls) == 0:
 			return _CutResult(gear_hash, pos)
 		gear_hash = gear_hash + gear_ptr[buf[pos + 1]]
-		if (gear_hash & config.mask_s) == 0:
+		if (gear_hash & mask_s) == 0:
 			return _CutResult(gear_hash, pos + 1)
 
 	for pos in range(mid_pos, end_pos, 2):
 		gear_hash = ((gear_hash << 2) + gear_ls_ptr[buf[pos]])
-		if (gear_hash & config.mask_l_ls) == 0:
+		if (gear_hash & mask_l_ls) == 0:
 			return _CutResult(gear_hash, pos)
 		gear_hash = gear_hash + gear_ptr[buf[pos + 1]]
-		if (gear_hash & config.mask_l) == 0:
+		if (gear_hash & mask_l) == 0:
 			return _CutResult(gear_hash, pos + 1)
 
 	return _CutResult(gear_hash, remaining)
