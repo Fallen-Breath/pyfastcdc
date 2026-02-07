@@ -90,13 +90,13 @@ cdef class FastCDC:
 			self.gear_holder_ls = NULL
 
 	def cut_buf(self, buf: Union[bytes, bytearray, memoryview]) -> ChunkIterator:
-		return BufferChunkSpliter(self, utils.create_memoryview_from_buffer(buf))
+		return BufferChunkSplitter(self, utils.create_memoryview_from_buffer(buf))
 
 	def cut_file(self, file_path: Union[str, bytes, Path]) -> FileHoldingChunkIterator:
-		return FileChunkSpliter(self, file_path)
+		return FileChunkSplitter(self, file_path)
 
 	def cut_stream(self, stream: BinaryStreamReader) -> ChunkIterator:
-		return StreamChunkSpliter(self, utils.create_readinto_func(stream))
+		return StreamChunkSplitter(self, utils.create_readinto_func(stream))
 
 
 cdef struct _CutResult:
@@ -146,7 +146,7 @@ cdef _CutResult _cut_gear(const _Config* config, const uint8_t* buf, uint64_t bu
 	return _CutResult(gear_hash, remaining)
 
 
-cdef class BufferChunkSpliter:
+cdef class BufferChunkSplitter:
 	cdef object fastcdc
 	cdef const _Config * config
 	cdef memoryview buf
@@ -180,12 +180,12 @@ cdef class BufferChunkSpliter:
 		return self
 
 
-cdef class FileChunkSpliter(BufferChunkSpliter):
+cdef class FileChunkSplitter(BufferChunkSplitter):
 	cdef object mmap_file
 
 	def __init__(self, fastcdc: FastCDC, file_path: Union[str, bytes, Path]):
 		self.mmap_file = utils.create_mmap_from_file(file_path)
-		BufferChunkSpliter.__init__(self, fastcdc, self.mmap_file.data)
+		BufferChunkSplitter.__init__(self, fastcdc, self.mmap_file.data)
 
 	def __enter__(self):
 		return self
@@ -197,7 +197,7 @@ cdef class FileChunkSpliter(BufferChunkSpliter):
 		self.mmap_file.close()
 
 
-cdef class StreamChunkSpliter:
+cdef class StreamChunkSplitter:
 	cdef object fastcdc
 	cdef const _Config * config
 	cdef object readinto_func
