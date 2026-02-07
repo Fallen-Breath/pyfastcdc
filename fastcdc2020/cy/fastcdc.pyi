@@ -1,39 +1,7 @@
-import dataclasses
 from pathlib import Path
-from typing import Optional, Literal, Union, Iterator
+from typing import Optional, Union
 
-from typing_extensions import Protocol
-
-
-@dataclasses.dataclass(frozen=True)
-class Chunk:
-	hash: int
-	offset: int
-	length: int
-	data: memoryview
-
-
-class _ChunkIterator(Protocol):
-	def __next__(self) -> Chunk: ...
-	def __iter__(self) -> Iterator[Chunk]: ...
-
-
-class _FileHoldingChunkIterator(_ChunkIterator, Protocol):
-	def __enter__(self) -> '_FileHoldingChunkIterator': ...
-	def __exit__(self, exc_type, exc_val, exc_tb): ...
-	def close(self): ...
-
-
-class _ReadableBinaryStreamWithRead(Protocol):
-	def read(self, n: int, /) -> bytes: ...
-
-
-class _ReadableBinaryStreamWithReadinto(Protocol):
-	def readinto(self, b: memoryview) -> int: ...
-
-
-_ReadableBinaryStream = Union[_ReadableBinaryStreamWithRead, _ReadableBinaryStreamWithReadinto]
-NormalizedChunking = Literal[0, 1, 2, 3]
+from fastcdc2020.common import NormalizedChunking, ChunkIterator, FileHoldingChunkIterator, BinaryStreamReader
 
 
 class FastCDC2020:
@@ -48,11 +16,11 @@ class FastCDC2020:
 	):
 		...
 
-	def cut_buf(self, buf: Union[bytes, bytearray, memoryview]) -> _ChunkIterator:
+	def cut_buf(self, buf: Union[bytes, bytearray, memoryview]) -> ChunkIterator:
 		...
 
-	def cut_file(self, file_path: Union[str, bytes, Path]) -> _FileHoldingChunkIterator:
+	def cut_file(self, file_path: Union[str, bytes, Path]) -> FileHoldingChunkIterator:
 		...
 
-	def cut_stream(self, stream: _ReadableBinaryStream) -> _ChunkIterator:
+	def cut_stream(self, stream: BinaryStreamReader) -> ChunkIterator:
 		...

@@ -1,24 +1,14 @@
-import dataclasses
-import io
-import mmap
-import os
 from pathlib import Path
-from typing import Optional, Literal, Union, Callable
+from typing import Optional, Union
 
+import cython
 from libc.stdint cimport uint8_t, uint32_t, uint64_t
 from libc.stdlib cimport malloc, free
 from libc.string cimport memmove
+
+from fastcdc2020 import utils, NormalizedChunking, Chunk, BinaryStreamReader, ChunkIterator, FileHoldingChunkIterator
 from fastcdc2020.cy.constants cimport GEAR, GEAR_LS, MASKS
-
-NormalizedChunking = Literal[0, 1, 2, 3]
-
-
-@dataclasses.dataclass(frozen=True)
-class Chunk:
-	hash: int  # FastCDC's gear hash
-	offset: int
-	length: int
-	data: memoryview
+from fastcdc2020.utils import ReadintoFunc
 
 
 cdef struct _Config:
@@ -99,30 +89,14 @@ cdef class FastCDC2020:
 			free(self.gear_holder_ls)
 			self.gear_holder_ls = NULL
 
-	def cut_buf(self, buf: Union[bytes, bytearray, memoryview]) -> _BufferChunkSpliter:
-		if isinstance(buf, (bytes, bytearray)):
-			buf = memoryview(buf)
-		return _BufferChunkSpliter(self, buf)
+	def cut_buf(self, buf: Union[bytes, bytearray, memoryview]) -> ChunkIterator:
+		return BufferChunkSpliter(self, utils.create_memoryview_from_buffer(buf))
 
-	def cut_file(self, file_path: Union[str, bytes, Path]) -> _FileChunkSpliter:
-		file_size = os.path.getsize(file_path)
-		return _FileChunkSpliter(self, open(file_path, 'rb'), file_size)
+	def cut_file(self, file_path: Union[str, bytes, Path]) -> FileHoldingChunkIterator:
+		return FileChunkSpliter(self, file_path)
 
-	def cut_stream(self, stream: object) -> _StreamChunkSpliter:
-		readinto_func: _ReadintoFunc = getattr(stream, 'readinto', None)
-		if readinto_func is None:
-			read_func = getattr(stream, 'read', None)
-			if read_func is None:
-				raise TypeError('stream must be readable')
-
-			def readinto_using_read(dest_buf: memoryview):
-				read_buf = read_func(len(dest_buf))
-				dest_buf[:len(read_buf)] = read_buf
-				return len(read_buf)
-
-			readinto_func = readinto_using_read
-
-		return _StreamChunkSpliter(self, readinto_func)
+	def cut_stream(self, stream: BinaryStreamReader) -> ChunkIterator:
+		return StreamChunkSpliter(self, utils.create_readinto_func(stream))
 
 
 cdef struct _CutResult:
@@ -130,6 +104,8 @@ cdef struct _CutResult:
 	uint64_t cut_offset
 
 
+@cython.boundscheck(False)
+@cython.wraparound(False)
 cdef _CutResult _cut_gear(const _Config* config, const uint8_t* buf, uint64_t buf_len):
 	cdef uint64_t remaining = buf_len
 	if remaining <= config.min_size:
@@ -144,8 +120,8 @@ cdef _CutResult _cut_gear(const _Config* config, const uint8_t* buf, uint64_t bu
 	cdef uint64_t gear_hash = 0
 	cdef uint64_t pos = 0
 
-	cdef const uint64_t * gear_ls_ptr = config.gear_ls
 	cdef const uint64_t * gear_ptr = config.gear
+	cdef const uint64_t * gear_ls_ptr = config.gear_ls
 
 	while idx < center // 2:
 		pos = idx * 2
@@ -170,7 +146,7 @@ cdef _CutResult _cut_gear(const _Config* config, const uint8_t* buf, uint64_t bu
 	return _CutResult(gear_hash, remaining)
 
 
-cdef class _BufferChunkSpliter:
+cdef class BufferChunkSpliter:
 	cdef object fastcdc
 	cdef const _Config * config
 	cdef memoryview buf
@@ -197,7 +173,6 @@ cdef class _BufferChunkSpliter:
 			length=res.cut_offset,
 			data=memoryview(self.buf[self.offset:end_pos]),
 		)
-
 		self.offset += res.cut_offset
 		return chunk
 
@@ -205,19 +180,12 @@ cdef class _BufferChunkSpliter:
 		return self
 
 
-cdef class _FileChunkSpliter(_BufferChunkSpliter):
-	cdef object mmap_obj
-	cdef object file_obj
+cdef class FileChunkSpliter(BufferChunkSpliter):
+	cdef object mmap_file
 
-	def __init__(self, fastcdc: FastCDC2020, file: io.BufferedReader, file_size: int):
-		self.file_obj = file
-		if file_size == 0:
-			self.mmap_obj = None
-			mv = memoryview(b'')
-		else:
-			self.mmap_obj = mmap.mmap(file.fileno(), file_size, access=mmap.ACCESS_READ)
-			mv = memoryview(self.mmap_obj)
-		_BufferChunkSpliter.__init__(self, fastcdc, mv)
+	def __init__(self, fastcdc: FastCDC2020, file_path: Union[str, bytes, Path]):
+		self.mmap_file = utils.create_mmap_from_file(file_path)
+		BufferChunkSpliter.__init__(self, fastcdc, self.mmap_file.data)
 
 	def __enter__(self):
 		return self
@@ -226,13 +194,10 @@ cdef class _FileChunkSpliter(_BufferChunkSpliter):
 		self.close()
 
 	def close(self):
-		self.file_obj.close()
+		self.mmap_file.close()
 
 
-_ReadintoFunc = Callable[[memoryview], int]
-
-
-cdef class _StreamChunkSpliter:
+cdef class StreamChunkSpliter:
 	cdef object fastcdc
 	cdef const _Config * config
 	cdef object readinto_func
@@ -244,7 +209,7 @@ cdef class _StreamChunkSpliter:
 	cdef uint8_t[:] buf_view
 	cdef uint64_t buf_len
 
-	def __init__(self, fastcdc: FastCDC2020, readinto_func: _ReadintoFunc):
+	def __init__(self, fastcdc: FastCDC2020, readinto_func: ReadintoFunc):
 		self.fastcdc = fastcdc  # keep ref
 		self.config = &fastcdc.config
 		self.readinto_func = readinto_func
