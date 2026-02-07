@@ -7,11 +7,10 @@ from typing import Callable, Union, Optional
 from fastcdc2020.common import BinaryStreamReader
 
 ReadintoFunc = Callable[[memoryview], int]
-CloserFunc = Callable[[], None]
 
 
 def create_memoryview_from_buffer(buf: Union[bytes, bytearray, memoryview]) -> memoryview:
-	if isinstance(buf, (bytes, bytearray)):
+	if isinstance(buf, (bytes, bytearray, memoryview)):
 		return memoryview(buf)
 	raise TypeError('buf must be bytes or bytearray')
 
@@ -56,11 +55,12 @@ class MmapFile:
 			raise
 
 	def close(self):
-		if self.mmap_obj and not self.mmap_obj.closed:
-			self.mmap_obj.close()
+		# If we close mmap_obj here, "BufferError: cannot close exported pointers exist" will possibly be thrown,
+		# since the caller might still have reference of the output Chunk object in local variables,
+		# which contains memoryview reference to this mmap_obj.
+		# So just don't close the mmap_obj here, let GC handle it
 		if self.file_obj and not self.file_obj.closed:
 			self.file_obj.close()
-		self.mmap_obj = None
 		self.file_obj = None
 
 	def __enter__(self):
