@@ -30,8 +30,12 @@ def get_version() -> str:
 	tree = ast.parse(read_file('fastcdc2020/__init__.py'))
 	for stmt in tree.body:
 		if isinstance(stmt, ast.Assign) and stmt.targets[0].id == '__version__':
-			assert isinstance(stmt.value, ast.Constant)
-			version_str = stmt.value.value
+			if isinstance(stmt.value, ast.Constant):
+				version_str = stmt.value.value
+			elif hasattr(ast, 'Str') and isinstance(stmt.value, ast.Str):
+				version_str = stmt.value.s
+			else:
+				raise TypeError(f'Unexpected type of __version__: {type(stmt.value)}')
 			assert isinstance(version_str, str)
 			print(f'__version__ = {version_str}')
 			return version_str
