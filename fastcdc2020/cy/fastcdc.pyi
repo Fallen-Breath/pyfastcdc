@@ -4,7 +4,7 @@ from typing import Optional, Union
 from fastcdc2020.common import NormalizedChunking, ChunkIterator, FileHoldingChunkIterator, BinaryStreamReader
 
 
-class FastCDC2020:
+class FastCDC:
 	def __init__(
 			self,
 			avg_size: int = 16384,

@@ -23,7 +23,7 @@ class _Config:
 	gear_ls: List[int]
 
 
-class FastCDC2020:
+class FastCDC:
 	MIN_SIZE_LOWER_BOUND: ClassVar[int] = 64
 	AVG_SIZE_LOWER_BOUND: ClassVar[int] = 256
 	MAX_SIZE_LOWER_BOUND: ClassVar[int] = 1024

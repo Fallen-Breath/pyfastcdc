@@ -7,6 +7,6 @@ from fastcdc2020.common import FileHoldingChunkIterator
 from fastcdc2020.common import NormalizedChunking
 
 try:
-	from fastcdc2020.cy.fastcdc import FastCDC2020
+	from fastcdc2020.cy.fastcdc import FastCDC
 except ImportError:
-	from fastcdc2020.py.fastcdc import FastCDC2020
+	from fastcdc2020.py.fastcdc import FastCDC

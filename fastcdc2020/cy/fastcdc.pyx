@@ -31,7 +31,7 @@ cdef uint64_t AVG_SIZE_UPPER_BOUND = 4 * 1048576
 cdef uint64_t MAX_SIZE_UPPER_BOUND = 16 * 1048576
 
 
-cdef class FastCDC2020:
+cdef class FastCDC:
 	cdef _Config config
 	cdef uint64_t* gear_holder
 	cdef uint64_t* gear_holder_ls
@@ -152,7 +152,7 @@ cdef class BufferChunkSpliter:
 	cdef memoryview buf
 	cdef uint64_t offset
 
-	def __init__(self, fastcdc: FastCDC2020, buf: memoryview):
+	def __init__(self, fastcdc: FastCDC, buf: memoryview):
 		self.fastcdc = fastcdc  # keep ref
 		self.config = &fastcdc.config
 		self.buf = buf
@@ -183,7 +183,7 @@ cdef class BufferChunkSpliter:
 cdef class FileChunkSpliter(BufferChunkSpliter):
 	cdef object mmap_file
 
-	def __init__(self, fastcdc: FastCDC2020, file_path: Union[str, bytes, Path]):
+	def __init__(self, fastcdc: FastCDC, file_path: Union[str, bytes, Path]):
 		self.mmap_file = utils.create_mmap_from_file(file_path)
 		BufferChunkSpliter.__init__(self, fastcdc, self.mmap_file.data)
 
@@ -209,7 +209,7 @@ cdef class StreamChunkSpliter:
 	cdef uint8_t[:] buf_view
 	cdef uint64_t buf_len
 
-	def __init__(self, fastcdc: FastCDC2020, readinto_func: ReadintoFunc):
+	def __init__(self, fastcdc: FastCDC, readinto_func: ReadintoFunc):
 		self.fastcdc = fastcdc  # keep ref
 		self.config = &fastcdc.config
 		self.readinto_func = readinto_func
