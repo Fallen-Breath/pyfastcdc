@@ -57,6 +57,8 @@ cdef class FastCDC:
 			raise ValueError(f'min_size {max_size} is out of range [{MAX_SIZE_LOWER_BOUND}, {MAX_SIZE_UPPER_BOUND}]')
 		if not (min_size <= avg_size <= max_size):
 			raise ValueError(f'avg_size {avg_size} is out of range [{min_size}, {max_size}]')
+		if not (0 <= normalized_chunking <= 3):
+			raise ValueError(f'normalized_chunking {normalized_chunking} is out of range [0, 3]')
 
 		self.config.avg_size = avg_size
 		self.config.min_size = min_size
@@ -99,6 +101,18 @@ cdef class FastCDC:
 
 	def cut_stream(self, stream: BinaryStreamReader) -> Iterator[Chunk]:
 		return StreamChunker(self, utils.create_readinto_func(stream))
+
+	@property
+	def avg_size(self) -> int:
+		return self.config.avg_size
+
+	@property
+	def min_size(self) -> int:
+		return self.config.min_size
+
+	@property
+	def max_size(self) -> int:
+		return self.config.max_size
 
 
 cdef struct _CutResult:
@@ -175,7 +189,7 @@ cdef class BufferChunker:
 		cdef uint64_t end_pos = self.offset + res.cut_offset
 
 		chunk = Chunk(
-			hash=res.gear_hash,
+			gear_hash=res.gear_hash,
 			offset=self.offset,
 			length=res.cut_offset,
 			data=memoryview(self.buf[self.offset:end_pos]),
@@ -264,7 +278,7 @@ cdef class StreamChunker:
 
 		self.last_chunk_len = chunk_len
 		return Chunk(
-			hash=res.gear_hash,
+			gear_hash=res.gear_hash,
 			offset=self.offset,
 			length=chunk_len,
 			data=memoryview(self.buf_obj)[self.buf_read_len:self.buf_read_len + chunk_len]

@@ -53,6 +53,8 @@ class FastCDC:
 			raise ValueError(f'min_size {max_size} is out of range [{self.MAX_SIZE_LOWER_BOUND}, {self.MAX_SIZE_UPPER_BOUND}]')
 		if not (min_size <= avg_size <= max_size):
 			raise ValueError(f'avg_size {avg_size} is out of range [{min_size}, {max_size}]')
+		if not (0 <= normalized_chunking <= 3):
+			raise ValueError(f'normalized_chunking {normalized_chunking} is out of range [0, 3]')
 
 		bits = avg_size.bit_length() - 1
 		mask_s = MASKS[bits + normalized_chunking]
@@ -89,6 +91,18 @@ class FastCDC:
 
 	def cut_stream(self, stream: BinaryStreamReader) -> Iterator[Chunk]:
 		return StreamChunker(self.config, utils.create_readinto_func(stream))
+
+	@property
+	def avg_size(self) -> int:
+		return self.config.avg_size
+
+	@property
+	def min_size(self) -> int:
+		return self.config.min_size
+
+	@property
+	def max_size(self) -> int:
+		return self.config.max_size
 
 
 @dataclasses.dataclass(frozen=True)
@@ -154,7 +168,7 @@ class BufferChunker(Iterator[Chunk]):
 		end_pos = self.offset + res.cut_offset
 
 		chunk = Chunk(
-			hash=res.gear_hash,
+			gear_hash=res.gear_hash,
 			offset=self.offset,
 			length=res.cut_offset,
 			data=self.buf[self.offset:end_pos],
@@ -216,7 +230,7 @@ class StreamChunker(Iterator[Chunk]):
 
 		self.last_chunk_len = chunk_len
 		return Chunk(
-			hash=res.gear_hash,
+			gear_hash=res.gear_hash,
 			offset=self.offset,
 			length=chunk_len,
 			data=memoryview(self.buf)[self.buf_read_len:self.buf_read_len + chunk_len]

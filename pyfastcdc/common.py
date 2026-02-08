@@ -6,7 +6,7 @@ from typing_extensions import Literal, Protocol
 
 @dataclasses.dataclass(frozen=True)
 class Chunk:
-	hash: int  # FastCDC's gear hash
+	gear_hash: int  # FastCDC's gear hash
 	offset: int
 	length: int
 	data: memoryview

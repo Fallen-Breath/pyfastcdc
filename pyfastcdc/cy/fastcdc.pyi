@@ -24,3 +24,15 @@ class FastCDC:
 
 	def cut_stream(self, stream: BinaryStreamReader) -> Iterator[Chunk]:
 		...
+
+	@property
+	def avg_size(self) -> int:
+		...
+
+	@property
+	def min_size(self) -> int:
+		...
+
+	@property
+	def max_size(self) -> int:
+		...
