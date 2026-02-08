@@ -1,4 +1,5 @@
 import ast
+import contextlib
 import functools
 import sys
 from pathlib import Path
@@ -6,6 +7,7 @@ from typing import List
 
 from setuptools import __version__ as setuptools_version
 from setuptools import setup, find_packages
+from setuptools.command.build_ext import build_ext
 
 HERE = Path(__file__).absolute().parent
 
@@ -42,7 +44,27 @@ def get_version() -> str:
 	raise RuntimeError('Cannot find __version__')
 
 
-print(sys.argv)
+class BuildExt(build_ext):
+	@classmethod
+	@contextlib.contextmanager
+	def __wrap_ext_err(cls):
+		try:
+			yield
+		except Exception as e:
+			print("###########################################################################################################", file=sys.stderr)
+			print("Failed to compile fastcdc2020 cython extension, fallback to pure python implementation with is a lot slower", file=sys.stderr)
+			print(e)
+			print("###########################################################################################################", file=sys.stderr)
+
+	def run(self):
+		with self.__wrap_ext_err():
+			build_ext.run(self)
+
+	def build_extensions(self):
+		with self.__wrap_ext_err():
+			super().build_extensions()
+			
+
 if "clean" in sys.argv or "sdist" in sys.argv:  # no cython stuffs in sdist
 	# btw pandas uses this `sys.argv` hack too: https://github.com/pandas-dev/pandas/blob/78242b3f6a256e3638a655f54bb37464f13db585/setup.py#L401
 	ext_modules = []
@@ -89,4 +111,5 @@ setup(
 		'Programming Language :: Python :: 3.14',
 	],
 	ext_modules=ext_modules,
+	cmdclass={'build_ext': BuildExt},
 )
