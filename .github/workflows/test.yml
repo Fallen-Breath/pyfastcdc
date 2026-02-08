@@ -1,12 +1,6 @@
 name: Tests
 
-on:
-  push:
-    paths:
-      - '.github/workflows/test.yml'
-      - 'pyfastcdc/**'
-      - 'tests/**'
-  pull_request:
+on: workflow_call
 
 jobs:
   unit_test:
@@ -26,6 +20,7 @@ jobs:
           - windows-latest
           - macos-latest
 
+    name: Test with Python ${{ matrix.python-version }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
