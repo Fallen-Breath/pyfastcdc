@@ -3,13 +3,16 @@ name: CI for PyFastCDC
 on:
   push:
     paths:
-      - '.github/workflows/package.yml'
+      - '.github/workflows/ci.yml'
       - '.github/workflows/build.yml'
       - '.github/workflows/test.yml'
       - 'pyfastcdc/**'
       - 'tests/**'
-      - 'pyproject.toml'
       - 'MANIFEST.in'
+      - 'pyproject.toml'
+      - 'requirements.*.txt'
+      - 'requirements.dev.txt'
+      - 'setup.py'
   pull_request:
   workflow_dispatch:
     inputs:
