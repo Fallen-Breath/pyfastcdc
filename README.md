@@ -26,8 +26,6 @@ for chunk in FastCDC(16384).cut_file('archive.tar'):
 
 ## Performance
 
-pyfastcdc can achieve ~4.8GB/s in-memory chunking speed
-
 ![benchmark](benchmark.png)
 
 Test environment:
@@ -35,10 +33,18 @@ Test environment:
 - Python 3.11.14 (docker image `python:3.11`)
 - Ryzen 7 6800H @ 4.55GHz, NVMe SSD, Debian 13.2
 
-Each test was run 5 times to calculate the average speed
+Each test was run five times for averaging, achieving a maximum in-memory chunking speed of about 4.8 GB/s
+
+Test files:
+
+- `rand_10G.bin`: 10GB randomly generated data
+- [`AlmaLinux-10.1-x86_64-dvd.iso`](https://repo.almalinux.org/almalinux/10/isos/x86_64/AlmaLinux-10.1-x86_64-dvd.iso): 
+- [`llvmorg-21.1.8.tar`](https://github.com/llvm/llvm-project/archive/refs/tags/llvmorg-21.1.8.tar.gz): gzip-unzipped LLVM 21.1.8 source code
+
+Test command:
 
 ```bash
-python benchmark.py --test-files rand_10G.bin AlmaLinux-10.1-x86_64-dvd.iso llvmorg-21.1.8.tar
+python ./scripts/benchmark.py --test-files rand_10G.bin AlmaLinux-10.1-x86_64-dvd.iso llvmorg-21.1.8.tar
 ```
 
 ## License
