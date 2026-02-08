@@ -92,7 +92,7 @@ cdef class FastCDC:
 	def cut_buf(self, buf: Union[bytes, bytearray, memoryview]) -> Iterator[Chunk]:
 		return BufferChunkSplitter(self, utils.create_memoryview_from_buffer(buf))
 
-	def cut_file(self, file_path: Union[str, bytes, Path]) -> Iterator[Chunk]:
+	def cut_file_mmap(self, file_path: Union[str, bytes, Path]) -> Iterator[Chunk]:
 		return FileChunkSplitter(self, file_path)
 
 	def cut_stream(self, stream: BinaryStreamReader) -> Iterator[Chunk]:
@@ -152,21 +152,24 @@ cdef class BufferChunkSplitter:
 	cdef object fastcdc
 	cdef const _Config * config
 	cdef memoryview buf
+	cdef const uint8_t[:] buf_view
+	cdef uint64_t buf_capacity
 	cdef uint64_t offset
 
 	def __init__(self, fastcdc: FastCDC, buf: memoryview):
 		self.fastcdc = fastcdc  # keep ref
 		self.config = &fastcdc.config
 		self.buf = buf
+		self.buf_view = buf
+		self.buf_capacity = len(buf)
 		self.offset = 0
 
 	def __next__(self) -> Chunk:
-		cdef const uint8_t[:] sub_buf = self.buf[self.offset:]
-		cdef uint64_t sub_buf_len = sub_buf.shape[0]
-		if sub_buf_len == 0:
+		if self.offset >= self.buf_capacity:
 			raise StopIteration()
 
-		cdef _CutResult res = _cut_gear(self.config, &sub_buf[0], sub_buf.shape[0])
+		cdef remaining_len = self.buf_capacity - self.offset
+		cdef _CutResult res = _cut_gear(self.config, &self.buf_view[0] + self.offset, remaining_len)
 		cdef uint64_t end_pos = self.offset + res.cut_offset
 
 		chunk = Chunk(
@@ -197,10 +200,13 @@ cdef class StreamChunkSplitter:
 
 	cdef uint64_t offset
 	cdef uint64_t last_chunk_len
+	cdef uint64_t max_size
 	cdef uint64_t buf_capacity
 	cdef bytearray buf_obj
 	cdef uint8_t[:] buf_view
-	cdef uint64_t buf_len
+	cdef uint64_t buf_read_len
+	cdef uint64_t buf_write_len
+	cdef uint8_t eof
 
 	def __init__(self, fastcdc: FastCDC, readinto_func: ReadintoFunc):
 		self.fastcdc = fastcdc  # keep ref
@@ -209,44 +215,55 @@ cdef class StreamChunkSplitter:
 
 		self.offset = 0
 		self.last_chunk_len = 0
-		self.buf_capacity = fastcdc.config.max_size
+		self.max_size = fastcdc.config.max_size
+		self.buf_capacity = max(self.max_size, 64 * 1024)
 		self.buf_obj = bytearray(self.buf_capacity)
 		self.buf_view = self.buf_obj
-		self.buf_len = 0
+		self.buf_read_len = 0
+		self.buf_write_len = 0
+		self.eof = 0
 
 	def __next__(self) -> Chunk:
 		cdef uint64_t remaining_buf_len
 		cdef uint8_t* buf_ptr = &self.buf_view[0]
 
 		if self.last_chunk_len > 0:
-			if self.last_chunk_len > self.buf_len:
-				raise AssertionError(f'last chunk length {self.last_chunk_len} is greater than buffer length {self.buf_len}')
-			remaining_buf_len = self.buf_len - self.last_chunk_len
-			memmove(buf_ptr, buf_ptr + self.last_chunk_len, remaining_buf_len)
-			self.buf_len = remaining_buf_len
+			self.buf_read_len += self.last_chunk_len
 			self.offset += self.last_chunk_len
 			self.last_chunk_len = 0
+			if self.buf_read_len > self.buf_write_len:
+				raise AssertionError(f'buf_read_len {self.buf_read_len} is greater than buf_write_len {self.buf_write_len}')
 
-		if self.buf_len < self.buf_capacity:
-			while self.buf_len < self.buf_capacity:
-				n_read = self.readinto_func(memoryview(self.buf_obj)[self.buf_len:])
+			remaining_buf_len = self.buf_write_len - self.buf_read_len
+			if remaining_buf_len < self.max_size:
+				memmove(buf_ptr, buf_ptr + self.buf_read_len, remaining_buf_len)
+				self.buf_read_len = 0
+				self.buf_write_len = remaining_buf_len
+
+		remaining_buf_len = self.buf_write_len - self.buf_read_len
+		if not self.eof and remaining_buf_len < self.max_size:
+			while self.buf_write_len < self.buf_capacity:
+				n_read = self.readinto_func(memoryview(self.buf_obj)[self.buf_write_len:])
 				if n_read == 0:
+					self.eof = 1
 					break
-				self.buf_len += n_read
-		if self.buf_len == 0:
+				self.buf_write_len += n_read
+
+		remaining_buf_len = self.buf_write_len - self.buf_read_len
+		if remaining_buf_len == 0:
 			raise StopIteration()
 
-		cdef _CutResult res = _cut_gear(self.config, buf_ptr, self.buf_len)
+		cdef _CutResult res = _cut_gear(self.config, buf_ptr + self.buf_read_len, remaining_buf_len)
 		cdef uint64_t chunk_len = res.cut_offset
 		if chunk_len == 0:  # last part of the file
-			chunk_len = self.buf_len
+			chunk_len = remaining_buf_len
 
 		self.last_chunk_len = chunk_len
 		return Chunk(
 			hash=res.gear_hash,
 			offset=self.offset,
 			length=chunk_len,
-			data=memoryview(self.buf_obj)[:chunk_len]
+			data=memoryview(self.buf_obj)[self.buf_read_len:self.buf_read_len + chunk_len]
 		)
 
 	def __iter__(self):
