@@ -63,8 +63,10 @@ class FastCDC:
 		gear = GEAR
 		gear_ls = GEAR_LS
 		if seed > 0:
+			seed &= _UINT64_MASK
+			seed_ls = (seed << 1) & _UINT64_MASK
 			gear = array.array('Q', [(x ^ seed) & _UINT64_MASK for x in GEAR])
-			gear_ls = array.array('Q', [(x ^ seed) & _UINT64_MASK for x in GEAR_LS])
+			gear_ls = array.array('Q', [(x ^ seed_ls) & _UINT64_MASK for x in GEAR_LS])
 
 		self.config = _Config(
 			avg_size=avg_size,

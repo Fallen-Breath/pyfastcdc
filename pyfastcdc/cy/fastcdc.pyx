@@ -72,12 +72,14 @@ cdef class FastCDC:
 		self.config.gear_ls = GEAR_LS
 		self.gear_holder = NULL
 		self.gear_holder_ls = NULL
+
+		cdef uint64_t seed_ls = seed << 1
 		if seed > 0:
 			self.gear_holder = <uint64_t*>PyMem_Malloc(256 * sizeof(uint64_t))
 			self.gear_holder_ls = <uint64_t*>PyMem_Malloc(256 * sizeof(uint64_t))
 			for i in range(256):
 				self.gear_holder[i] = GEAR[i] ^ seed
-				self.gear_holder_ls[i] = GEAR_LS[i] ^ seed
+				self.gear_holder_ls[i] = GEAR_LS[i] ^ seed_ls
 			self.config.gear = self.gear_holder
 			self.config.gear_ls = self.gear_holder_ls
 
