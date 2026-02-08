@@ -80,13 +80,13 @@ class FastCDC:
 		)
 
 	def cut_buf(self, buf: Union[bytes, bytearray, memoryview]) -> Iterator[Chunk]:
-		return BufferChunkSplitter(self.config, utils.create_memoryview_from_buffer(buf))
+		return BufferChunker(self.config, utils.create_memoryview_from_buffer(buf))
 
 	def cut_file_mmap(self, file_path: Union[str, bytes, Path]) -> Iterator[Chunk]:
-		return FileChunkSplitter(self.config, file_path)
+		return FileMmapChunker(self.config, file_path)
 
 	def cut_stream(self, stream: BinaryStreamReader) -> Iterator[Chunk]:
-		return StreamChunkSplitter(self.config, utils.create_readinto_func(stream))
+		return StreamChunker(self.config, utils.create_readinto_func(stream))
 
 
 @dataclasses.dataclass(frozen=True)
@@ -138,7 +138,7 @@ def _cut_gear(config: _Config, buf: memoryview) -> _CutResult:
 	return _CutResult(gear_hash, remaining)
 
 
-class BufferChunkSplitter(Iterator[Chunk]):
+class BufferChunker(Iterator[Chunk]):
 	def __init__(self, config: _Config, buf: memoryview):
 		self.config = config
 		self.buf = buf
@@ -161,13 +161,13 @@ class BufferChunkSplitter(Iterator[Chunk]):
 		return chunk
 
 
-class FileChunkSplitter(BufferChunkSplitter):
+class FileMmapChunker(BufferChunker):
 	def __init__(self, config: _Config, file_path: Union[str, bytes, Path]):
 		self.mmap_file = utils.create_mmap_from_file(file_path)
 		super().__init__(config, self.mmap_file.data)
 
 
-class StreamChunkSplitter(Iterator[Chunk]):
+class StreamChunker(Iterator[Chunk]):
 	def __init__(self, config: _Config, readinto_func: ReadintoFunc):
 		self.config = config
 		self.readinto_func = readinto_func
@@ -175,36 +175,45 @@ class StreamChunkSplitter(Iterator[Chunk]):
 		self.offset = 0
 		self.last_chunk_len = 0
 		self.buf = bytearray(config.max_size)
-		self.buf_len = 0
+		self.buf_read_len = 0
+		self.buf_write_len = 0
+		self.eof = False
 
 	def __next__(self) -> Chunk:
 		if self.last_chunk_len > 0:
-			if self.last_chunk_len > self.buf_len:
-				raise AssertionError(f'last chunk length {self.last_chunk_len} is greater than buffer length {self.buf_len}')
-			remaining_buf_len = self.buf_len - self.last_chunk_len
-			self.buf[:remaining_buf_len] = self.buf[self.last_chunk_len:self.buf_len]
-			self.buf_len = remaining_buf_len
+			self.buf_read_len += self.last_chunk_len
 			self.offset += self.last_chunk_len
 			self.last_chunk_len = 0
+			if self.buf_read_len > self.buf_write_len:
+				raise AssertionError(f'buf_read_len {self.buf_read_len} is greater than buf_write_len {self.buf_write_len}')
 
-		if self.buf_len < len(self.buf):
-			while self.buf_len < len(self.buf):
-				n_read = self.readinto_func(memoryview(self.buf)[self.buf_len:])
+			remaining_buf_len = self.buf_write_len - self.buf_read_len
+			if remaining_buf_len < self.config.max_size:
+				self.buf[:remaining_buf_len] = self.buf[self.buf_read_len:self.buf_write_len]
+				self.buf_read_len = 0
+				self.buf_write_len = remaining_buf_len
+
+		remaining_buf_len = self.buf_write_len - self.buf_read_len
+		if not self.eof and remaining_buf_len < self.config.max_size:
+			while self.buf_write_len < len(self.buf):
+				n_read = self.readinto_func(memoryview(self.buf)[self.buf_write_len:])
 				if n_read == 0:
 					break
-				self.buf_len += n_read
-		if self.buf_len == 0:
+				self.buf_write_len += n_read
+
+		remaining_buf_len = self.buf_write_len - self.buf_read_len
+		if remaining_buf_len == 0:
 			raise StopIteration()
 
-		res = _cut_gear(self.config, memoryview(self.buf)[:self.buf_len])
+		res = _cut_gear(self.config, memoryview(self.buf)[self.buf_read_len:self.buf_write_len])
 		chunk_len = res.cut_offset
 		if res.cut_offset <= 0:  # last part of the file
-			chunk_len = self.buf_len
+			chunk_len = remaining_buf_len
 
 		self.last_chunk_len = chunk_len
 		return Chunk(
 			hash=res.gear_hash,
 			offset=self.offset,
 			length=chunk_len,
-			data=memoryview(self.buf)[:chunk_len]
+			data=memoryview(self.buf)[self.buf_read_len:self.buf_read_len + chunk_len]
 		)
