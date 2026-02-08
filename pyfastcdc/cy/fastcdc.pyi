@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Optional, Union, Iterator
 
-from fastcdc2020.common import NormalizedChunking, BinaryStreamReader, Chunk
+from pyfastcdc.common import NormalizedChunking, BinaryStreamReader, Chunk
 
 
 class FastCDC:

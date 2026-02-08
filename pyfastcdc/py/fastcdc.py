@@ -3,9 +3,9 @@ import dataclasses
 from pathlib import Path
 from typing import Optional, ClassVar, Union, Iterator
 
-from fastcdc2020 import utils, NormalizedChunking, Chunk, BinaryStreamReader
-from fastcdc2020.py.constants import MASKS, GEAR, GEAR_LS
-from fastcdc2020.utils import ReadintoFunc
+from pyfastcdc import utils, NormalizedChunking, Chunk, BinaryStreamReader
+from pyfastcdc.py.constants import MASKS, GEAR, GEAR_LS
+from pyfastcdc.utils import ReadintoFunc
 
 _UINT64_MASK = (1 << 64) - 1
 

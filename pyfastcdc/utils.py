@@ -4,7 +4,7 @@ import os
 from pathlib import Path
 from typing import Callable, Union, Optional
 
-from fastcdc2020.common import BinaryStreamReader
+from pyfastcdc.common import BinaryStreamReader
 
 ReadintoFunc = Callable[[memoryview], int]
 

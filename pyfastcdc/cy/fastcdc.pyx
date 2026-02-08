@@ -6,9 +6,9 @@ from cpython.mem cimport PyMem_Malloc, PyMem_Free
 from libc.stdint cimport uint8_t, uint32_t, uint64_t
 from libc.string cimport memmove
 
-from fastcdc2020 import utils, NormalizedChunking, Chunk, BinaryStreamReader
-from fastcdc2020.cy.constants cimport GEAR, GEAR_LS, MASKS
-from fastcdc2020.utils import ReadintoFunc
+from pyfastcdc import utils, NormalizedChunking, Chunk, BinaryStreamReader
+from pyfastcdc.cy.constants cimport GEAR, GEAR_LS, MASKS
+from pyfastcdc.utils import ReadintoFunc
 
 
 cdef struct _Config:

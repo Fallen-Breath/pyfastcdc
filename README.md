@@ -1,4 +1,4 @@
-# fastcdc2020-py
+# pyfastcdc
 
 FastCDC 2020 implementation in Python, with Cython acceleration
 
@@ -7,7 +7,7 @@ FastCDC 2020 implementation in Python, with Cython acceleration
 ## Installation
 
 ```bash
-pip install fastcdc2020
+pip install pyfastcdc
 ```
 
 ## Usage

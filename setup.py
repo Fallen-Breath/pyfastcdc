@@ -12,6 +12,14 @@ from setuptools.command.build_ext import build_ext
 HERE = Path(__file__).absolute().parent
 
 
+def parse_major(s: str) -> int:
+	try:
+		return int(s.split('.', 1)[0])
+	except (IndexError, ValueError):
+		print('Failed to parse version:', s, file=sys.stderr)
+		return 0
+
+
 def read_file(file_name: str) -> str:
 	with open(HERE / file_name, 'r', encoding='utf8') as f:
 		return f.read()
@@ -29,7 +37,7 @@ def read_requirements(file_name: str) -> List[str]:
 
 @functools.lru_cache(None)
 def get_version() -> str:
-	tree = ast.parse(read_file('fastcdc2020/__init__.py'))
+	tree = ast.parse(read_file('pyfastcdc/__init__.py'))
 	for stmt in tree.body:
 		if isinstance(stmt, ast.Assign) and stmt.targets[0].id == '__version__':
 			if isinstance(stmt.value, ast.Constant):
@@ -39,7 +47,7 @@ def get_version() -> str:
 			else:
 				raise TypeError(f'Unexpected type of __version__: {type(stmt.value)}')
 			assert isinstance(version_str, str)
-			print(f'__version__ = {version_str}')
+			print(f'pyfastcdc.__version__ = {version_str}')
 			return version_str
 	raise RuntimeError('Cannot find __version__')
 
@@ -52,7 +60,7 @@ class BuildExt(build_ext):
 			yield
 		except Exception as e:
 			print("###########################################################################################################", file=sys.stderr)
-			print("Failed to compile fastcdc2020 cython extension, fallback to pure python implementation with is a lot slower", file=sys.stderr)
+			print("Failed to compile pyfastcdc cython extension, fallback to pure python implementation with is a lot slower", file=sys.stderr)
 			print(e)
 			print("###########################################################################################################", file=sys.stderr)
 
@@ -71,14 +79,14 @@ if "clean" in sys.argv or "sdist" in sys.argv:  # no cython stuffs in sdist
 else:
 	from Cython.Build import cythonize
 	ext_modules = cythonize(
-		'fastcdc2020/cy/*.pyx',
+		'pyfastcdc/cy/*.pyx',
 		compiler_directives={'language_level': '3'},
 	)
 
 print(f'setuptools_version: {setuptools_version}')
-use_license_expression = setuptools_version.split('.') >= '77.0.0'.split('.')
+use_license_expression = parse_major(setuptools_version) >= 77
 setup(
-	name='fastcdc2020',
+	name='pyfastcdc',
 	version=get_version(),
 	description='FastCDC 2020 implementation in Python',
 	long_description=read_file('README.md'),
@@ -86,7 +94,7 @@ setup(
 	author='Fallen_Breath',
 	python_requires='>=3.6',
 	project_urls={
-		'Homepage': 'https://github.com/Fallen-Breath/fastcdc2020-py',
+		'Homepage': 'https://github.com/Fallen-Breath/pyfastcdc',
 	},
 
 	packages=find_packages(exclude=['tests', '*.tests', '*.tests.*', 'tests.*']),

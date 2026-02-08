@@ -68,7 +68,7 @@ GEAR_LS: Final['array.array[int]'] = array.array('Q', [
 
 def main():
 	parser = argparse.ArgumentParser()
-	parser.add_argument('--output', type=str, default=str(Path(__file__).parent.parent / 'fastcdc2020'))
+	parser.add_argument('--output', type=str, default=str(Path(__file__).parent.parent / 'pyfastcdc'))
 	args = parser.parse_args()
 
 	output_dir = Path(args.output)
