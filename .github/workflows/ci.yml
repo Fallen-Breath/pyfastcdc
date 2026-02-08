@@ -31,8 +31,9 @@ jobs:
   evaluate:
     runs-on: ubuntu-latest
     outputs:
+      is_tagged_release: ${{ steps.evaluate.outputs.is_tagged_release }}
+      is_manual_release: ${{ steps.evaluate.outputs.is_manual_release }}
       should_publish: ${{ steps.evaluate.outputs.should_publish }}
-      is_tagged: ${{ steps.evaluate.outputs.is_tagged }}
     steps:
       - id: evaluate
         run: |
