@@ -76,7 +76,6 @@ class TestPyCyConsistency:
 			data_cache[size] = bytes(rnd.getrandbits(8) for _ in range(size))
 		return data_cache
 
-	@pytest.mark.slow
 	@pytest.mark.parametrize('avg_size', AVG_SIZES)
 	@pytest.mark.parametrize('data_size', DATA_SIZES)
 	@pytest.mark.parametrize('normalized_chunking', [0, 1, 2, 3])
