@@ -17,7 +17,7 @@ on:
   workflow_dispatch:
     inputs:
       publish_to_test_pypi:
-        description: 'Publish to TestPyPI or not'
+        description: 'Publish to TestPyPI'
         type: boolean
         required: true
 
@@ -35,14 +35,12 @@ jobs:
       is_manual_release: ${{ steps.evaluate.outputs.is_manual_release }}
       should_publish: ${{ steps.evaluate.outputs.should_publish }}
     steps:
-      - id: evaluate
+      - name: Evaluate release conditions
+        id: evaluate
         run: |
-          is_tagged_release="${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') }}"
-          is_manual_release="${{ github.event_name == 'workflow_dispatch' && inputs.publish_to_test_pypi == 'true' }}"
-
           echo "Current event: ${{ github.event_name }}"
-          echo "Is Tagged: $is_tagged_release"
-          echo "Is Manual: $is_manual_release"
+          is_tagged_release="${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') }}"
+          is_manual_release="${{ github.event_name == 'workflow_dispatch' && inputs.publish_to_test_pypi }}"
 
           echo "is_tagged_release=$is_tagged_release" >> "$GITHUB_OUTPUT"
           echo "is_manual_release=$is_manual_release" >> "$GITHUB_OUTPUT"
@@ -51,6 +49,7 @@ jobs:
           else
             echo "should_publish=false" >> "$GITHUB_OUTPUT"
           fi
+          cat "$GITHUB_OUTPUT"
 
   pypi_upload:
     name: Publish package to (Test)PyPI
