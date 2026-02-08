@@ -176,7 +176,7 @@ class StreamChunker(Iterator[Chunk]):
 		self.last_chunk_len = 0
 		self.eof = False
 
-		self.buf_capacity = self.config.max_size + min(max(8 * 1024, self.config.max_size), 1024 * 1024)
+		self.buf_capacity = self.config.max_size + max(8 * 1024, self.config.max_size)
 		self.buf = bytearray(self.buf_capacity)
 		self.buf_read_len = 0
 		self.buf_write_len = 0
