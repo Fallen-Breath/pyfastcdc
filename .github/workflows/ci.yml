@@ -1,4 +1,4 @@
-name: CI workflow for PyFastCDC
+name: CI for PyFastCDC
 
 on:
   push:
