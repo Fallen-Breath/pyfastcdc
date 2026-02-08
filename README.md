@@ -34,9 +34,17 @@ for chunk in FastCDC(16384).cut_file('archive.tar'):
 	print(chunk.offset, chunk.length, hashlib.sha256(chunk.data).hexdigest())
 ```
 
+Please only import members from `pyfastcdc` in your application code and avoid importing inner modules (e.g. `pyfastcdc.common`) directly.
+Only public APIs inside the `pyfastcdc` module are guaranteed to be stable across releases
+
+```python
+from pyfastcdc import Chunk         # GOOD
+from pyfastcdc.common import Chunk  # BAD, no API stability guarantee
+```
+
 ## Performance
 
-With the help of [Cython](https://github.com/cython/cython), PyFastCDC can achieve near-native performance
+With the help of Cython, PyFastCDC can achieve near-native performance on chunking inputs
 
 ![benchmark](benchmark.png)
 
