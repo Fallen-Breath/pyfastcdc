@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 HERE = Path(__file__).absolute().parent
-DEFAULT_CSV_PATH = HERE / '.benchmark' / 'result.csv'
+DEFAULT_CSV_PATH = HERE / 'benchmark' / 'result.csv'
 
 
 def visualize(csv_path: Path):

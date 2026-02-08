@@ -1,19 +1,18 @@
 import argparse
 import csv
 import functools
-import random
 import time
 from pathlib import Path
-from typing import Union, Callable, Dict, Type
+from typing import Union, Callable, Dict, Type, List
+
 import numpy as np
 
 from pyfastcdc.cy import FastCDC as FastCDC_cy
 from pyfastcdc.py import FastCDC as FastCDC_py
 
-
 FastCDC = Union[FastCDC_cy, FastCDC_py]
 HERE = Path(__file__).absolute().parent
-DEFAULT_BENCHMARK_DIR = HERE / '.benchmark'
+DEFAULT_BENCHMARK_DIR = HERE / 'benchmark'
 
 
 def create_random_file(filename: Path, size: int, seed: int):
@@ -89,16 +88,15 @@ def ensure_random_file(file_path: Path, size: int, seed: int = 0):
 	return file_path
 
 
-def benchmark(benchmark_dir: Path, output_csv_path: Path):
-	rnd_100m_file_path = ensure_random_file(benchmark_dir / 'rand_100m.bin', 100 * 1024 * 1024, 0)
-	rnd_1g_file_path = ensure_random_file(benchmark_dir / 'rand_1G.bin', 1024 * 1024 * 1024, 0)
-	rnd_10g_file_path = ensure_random_file(benchmark_dir / 'rand_10G.bin', 10 * 1024 * 1024 * 1024, 0)
+def benchmark(benchmark_dir: Path, output_csv_path: Path, test_files: List[str]):
+	if 'rand_100M.bin' in test_files:
+		ensure_random_file(benchmark_dir / 'rand_100M.bin', 100 * 1024 * 1024, 0)
+	if 'rand_1G.bin' in test_files:
+		ensure_random_file(benchmark_dir / 'rand_1G.bin', 1024 * 1024 * 1024, 0)
+	if 'rand_10G.bin' in test_files:
+		ensure_random_file(benchmark_dir / 'rand_10G.bin', 10 * 1024 * 1024 * 1024, 0)
 
-	test_files = [
-		rnd_100m_file_path,
-		rnd_1g_file_path,
-		rnd_10g_file_path,
-	]
+	test_files = [benchmark_dir / name for name in test_files]
 	avg_sizes = [
 		4 * 1024,
 		8 * 1024,
@@ -152,12 +150,13 @@ def benchmark(benchmark_dir: Path, output_csv_path: Path):
 
 def main():
 	parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+	parser.add_argument('--test-files', nargs='+', default=['rand_100M.bin', 'rand_1G.bin', 'rand_10G.bin'])
 	parser.add_argument('--benchmark-dir', type=Path, default=DEFAULT_BENCHMARK_DIR)
 	parser.add_argument('--output-csv', type=Path, default=DEFAULT_BENCHMARK_DIR / 'result.csv')
 	args = parser.parse_args()
 
 	init_benchmark_dir(args.benchmark_dir)
-	benchmark(args.benchmark_dir, args.output_csv)
+	benchmark(args.benchmark_dir, args.output_csv, args.test_files)
 
 
 if __name__ == '__main__':
