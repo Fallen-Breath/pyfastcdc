@@ -219,7 +219,7 @@ cdef class StreamChunker:
 		self.last_chunk_len = 0
 		self.eof = 0
 
-		self.buf_capacity = max(self.max_size, 64 * 1024)
+		self.buf_capacity = self.max_size + min(max(8 * 1024, self.max_size), 1024 * 1024)
 		self.buf_obj = bytearray(self.buf_capacity)
 		self.buf_view = self.buf_obj
 		self.buf_read_len = 0
