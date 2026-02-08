@@ -19,7 +19,7 @@ class FastCDC:
 	def cut_buf(self, buf: Union[bytes, bytearray, memoryview]) -> Iterator[Chunk]:
 		...
 
-	def cut_file_mmap(self, file_path: Union[str, bytes, Path]) -> Iterator[Chunk]:
+	def cut_file(self, file_path: Union[str, bytes, Path]) -> Iterator[Chunk]:
 		...
 
 	def cut_stream(self, stream: BinaryStreamReader) -> Iterator[Chunk]:

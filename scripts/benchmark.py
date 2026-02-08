@@ -61,9 +61,9 @@ class TestCutBuf(TestChunkerFunction):
 			pass
 
 
-class TestCutFileMmap(TestChunkerFunction):
+class TestCutFile(TestChunkerFunction):
 	def run(self):
-		for _ in self.cdc.cut_file_mmap(self.file_name):
+		for _ in self.cdc.cut_file(self.file_name):
 			pass
 
 
@@ -118,7 +118,7 @@ def benchmark(benchmark_dir: Path, output_csv_path: Path):
 	}
 	chunker_funcs: Dict[str, Type[TestChunkerFunction]] = {
 		'cut_buf': TestCutBuf,
-		'cut_file_mmap': TestCutFileMmap,
+		'cut_file': TestCutFile,
 		'cut_stream': TestCutStream,
 	}
 
