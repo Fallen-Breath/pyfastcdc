@@ -1,6 +1,6 @@
-recursive-include fastcdc2020/cy *.pyx *.pxd *.pyi
-recursive-exclude fastcdc2020/cy *.c *.h
+recursive-include pyfastcdc/cy *.pyx *.pxd *.pyi
+recursive-exclude pyfastcdc/cy *.c *.h
 
-include fastcdc2020/py.typed
+include pyfastcdc/py.typed
 include LICENSE README.md
 include requirements.txt requirements.dev.txt

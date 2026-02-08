@@ -88,7 +88,7 @@ use_license_expression = parse_major(setuptools_version) >= 77
 setup(
 	name='pyfastcdc',
 	version=get_version(),
-	description='FastCDC 2020 implementation in Python',
+	description='FastCDC 2020 implementation in Python, with Cython acceleration',
 	long_description=read_file('README.md'),
 	long_description_content_type='text/markdown',
 	author='Fallen_Breath',
