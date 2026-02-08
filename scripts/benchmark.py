@@ -131,7 +131,7 @@ def benchmark(benchmark_dir: Path, output_csv_path: Path, test_files: List[str])
 					for chunker_name, chunker_func_type in chunker_funcs.items():
 						chunker_func = chunker_func_type(cdc, test_file_path)
 						chunker_func.init()
-						cost_sec = measure_time_cost(chunker_func.run, 5)
+						cost_sec = measure_time_cost(chunker_func.run, 10)
 						file_size = test_file_path.stat().st_size
 						mib_per_sec = file_size / cost_sec / 1024 / 1024
 						row = {
