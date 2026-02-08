@@ -197,31 +197,33 @@ cdef class StreamChunker:
 	cdef object fastcdc
 	cdef const _Config * config
 	cdef object readinto_func
+	cdef uint64_t max_size
 
 	cdef uint64_t offset
 	cdef uint64_t last_chunk_len
-	cdef uint64_t max_size
+	cdef uint8_t eof
+
 	cdef uint64_t buf_capacity
 	cdef bytearray buf_obj
 	cdef uint8_t[:] buf_view
 	cdef uint64_t buf_read_len
 	cdef uint64_t buf_write_len
-	cdef uint8_t eof
 
 	def __init__(self, fastcdc: FastCDC, readinto_func: ReadintoFunc):
 		self.fastcdc = fastcdc  # keep ref
 		self.config = &fastcdc.config
 		self.readinto_func = readinto_func
+		self.max_size = fastcdc.config.max_size
 
 		self.offset = 0
 		self.last_chunk_len = 0
-		self.max_size = fastcdc.config.max_size
+		self.eof = 0
+
 		self.buf_capacity = max(self.max_size, 64 * 1024)
 		self.buf_obj = bytearray(self.buf_capacity)
 		self.buf_view = self.buf_obj
 		self.buf_read_len = 0
 		self.buf_write_len = 0
-		self.eof = 0
 
 	def __next__(self) -> Chunk:
 		cdef uint64_t remaining_buf_len

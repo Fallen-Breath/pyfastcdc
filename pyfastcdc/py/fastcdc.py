@@ -174,10 +174,11 @@ class StreamChunker(Iterator[Chunk]):
 
 		self.offset = 0
 		self.last_chunk_len = 0
+		self.eof = False
+
 		self.buf = bytearray(config.max_size)
 		self.buf_read_len = 0
 		self.buf_write_len = 0
-		self.eof = False
 
 	def __next__(self) -> Chunk:
 		if self.last_chunk_len > 0:
