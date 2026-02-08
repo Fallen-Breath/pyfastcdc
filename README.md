@@ -46,7 +46,7 @@ from pyfastcdc.common import Chunk  # BAD, no API stability guarantee
 
 With the help of Cython, PyFastCDC can achieve near-native performance on chunking inputs
 
-![benchmark](benchmark.png)
+![benchmark](https://raw.githubusercontent.com/Fallen-Breath/pyfastcdc/refs/heads/master/benchmark.png)
 
 Each test was run 10 times for averaging, achieving a maximum in-memory chunking speed of about 4.8GB/s
 
