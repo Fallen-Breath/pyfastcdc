@@ -1,5 +1,9 @@
 # PyFastCDC
 
+[![License](https://img.shields.io/github/license/Fallen-Breath/pyfastcdc.svg)](http://www.gnu.org/licenses/gpl-3.0.html)
+[![Issues](https://img.shields.io/github/issues/Fallen-Breath/pyfastcdc.svg)](https://github.com/Fallen-Breath/pyfastcdc/issues)
+[![PyPI Version](https://img.shields.io/pypi/v/pyfastcdc.svg?label=PyPI)](https://pypi.org/project/pyfastcdc)
+
 A FastCDC 2020 implementation written in Python, with [Cython](https://github.com/cython/cython) acceleration
 
 Supports Python 3.6+
