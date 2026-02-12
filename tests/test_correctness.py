@@ -1,13 +1,14 @@
 import hashlib
 import io
 import random
+from io import BytesIO
 from pathlib import Path
-from typing import Dict, Tuple, List, NamedTuple
+from typing import Dict, Tuple, List, NamedTuple, Iterable
 
 import pytest
 
 from pyfastcdc import FastCDC as FastCDC_cy
-from pyfastcdc.common import NormalizedChunking
+from pyfastcdc.common import NormalizedChunking, Chunk
 from pyfastcdc.py import FastCDC as FastCDC_py
 from tests.utils import FastCDCType
 
@@ -20,19 +21,29 @@ class TestSekienAkashitaImage:
 	# Param -> [(gear_hash, length), ...]
 	EXPECTED_RESULT: Dict[Param, List[Tuple[int, int]]] = {}
 
+	@pytest.mark.parametrize('cut_func', ['buf', 'stream'])
 	@pytest.mark.parametrize('case_param', EXPECTED_RESULT.keys())
-	def test_sekien_akashita(self, fastcdc_impl: FastCDCType, sekien_akashita_bytes: bytes, case_param: Param):
+	def test_sekien_akashita(self, fastcdc_impl: FastCDCType, sekien_akashita_bytes: bytes, case_param: Param, cut_func: str):
 		expected = self.EXPECTED_RESULT[case_param]
 
-		h = hashlib.sha256()
 		cdc = fastcdc_impl(avg_size=case_param.avg_size, seed=case_param.seed, normalized_chunking=case_param.nc)
-		chunks = list(cdc.cut_buf(sekien_akashita_bytes))
 
-		assert len(chunks) == len(expected)
-		for chunk, (gear_hash, length) in zip(chunks, expected):
-			assert chunk.gear_hash == gear_hash
-			assert chunk.length == length
+		if cut_func == 'buf':
+			chunk_gen = cdc.cut_stream(BytesIO(sekien_akashita_bytes))
+		elif cut_func == 'stream':
+			chunk_gen = cdc.cut_buf(sekien_akashita_bytes)
+		else:
+			raise ValueError(cut_func)
+
+		h = hashlib.sha256()
+		chunk_cnt = 0
+		for i, chunk in enumerate(chunk_gen):
+			assert i < len(expected)
+			assert chunk.gear_hash == expected[i][0]
+			assert chunk.length == expected[i][1]
 			h.update(chunk.data)
+			chunk_cnt += 1
+		assert chunk_cnt == len(expected)
 		assert h.hexdigest() == hashlib.sha256(sekien_akashita_bytes).hexdigest()
 
 
