@@ -8,11 +8,12 @@ A FastCDC 2020 implementation written in Python, with [Cython](https://github.co
 
 Supports Python 3.6+
 
+Its core algorithm implementation is a direct port of the v2020 module from [nlfiedler/fastcdc-rs](https://github.com/nlfiedler/fastcdc-rs),
+which means that the output of PyFastCDC completely matches the output of nlfiedler/fastcdc-rs
+
 **Still under development**
 
 ## Installation
-
-TODO
 
 PyFastCDC is available on PyPI with prebuilt wheels for common platforms. You can install it via pip or other Python package managers you want:
 
@@ -23,8 +24,8 @@ pip install pyfastcdc
 For platforms without prebuilt wheels, a suitable build environment capable of compiling Python extension modules is required.
 For example, you might need to install `gcc` and `python3-dev` via `apt` in Debian
 
-If the Cython extension fails to compile, the installation will fall back
-to a pure-Python implementation, which is significantly slower
+If the Cython extension fails to compile, the installation will fall back to a pure Python implementation,
+which is significantly slower (around 0.01× or less in memory chunking speed)
 
 ## Usage
 
@@ -60,7 +61,7 @@ FastCDC parameters:
 - `min_size`: `avg_size` / 4 (default)
 - `max_size`: `avg_size` * 4 (default)
 - `normalized_chunking`: 1 (default)
-- `seed`: 1 (default)
+- `seed`: 0 (default)
 
 Test environment:
 
