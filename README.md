@@ -15,14 +15,16 @@ which means that the output of PyFastCDC completely matches the output of nlfied
 
 ## Installation
 
-PyFastCDC is available on PyPI with prebuilt wheels for common platforms. You can install it via pip or other Python package managers you want:
+PyFastCDC is available on [PyPI](https://pypi.org/project/pyfastcdc/), with prebuilt wheels for many common platforms thanks to [cibuildwheel](https://cibuildwheel.pypa.io/)
+
+To install, you can use pip or any other Python package manager you prefer:
 
 ```bash
 pip install pyfastcdc
 ```
 
 For platforms without prebuilt wheels, a suitable build environment capable of compiling Python extension modules is required.
-For example, you might need to install `gcc` and `python3-dev` via `apt` in Debian
+For example, on Debian, you might need to install `gcc` and `python3-dev` via `apt`
 
 If the Cython extension fails to compile, the installation will fall back to a pure Python implementation,
 which is significantly slower (around 0.01× or less in memory chunking speed)
