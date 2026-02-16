@@ -1,4 +1,3 @@
-import io
 import mmap
 import os
 from pathlib import Path
