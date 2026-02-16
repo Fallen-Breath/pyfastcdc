@@ -1,5 +1,4 @@
 import array
-import dataclasses
 from pathlib import Path
 from typing import Optional, ClassVar, Union, Iterator
 
@@ -10,7 +9,6 @@ from pyfastcdc.utils import ReadintoFunc
 _UINT64_MASK = (1 << 64) - 1
 
 
-@dataclasses.dataclass(frozen=True)
 class _Config:
 	avg_size: int
 	min_size: int
@@ -22,6 +20,30 @@ class _Config:
 	mask_l_ls: int
 	gear: 'array.array[int]'
 	gear_ls: 'array.array[int]'
+
+	def __init__(
+			self,
+			avg_size: int,
+			min_size: int,
+			max_size: int,
+			normalized_chunking: NormalizedChunking,
+			mask_s: int,
+			mask_l: int,
+			mask_s_ls: int,
+			mask_l_ls: int,
+			gear: 'array.array[int]',
+			gear_ls: 'array.array[int]',
+	):
+		self.avg_size = avg_size
+		self.min_size = min_size
+		self.max_size = max_size
+		self.normalized_chunking = normalized_chunking
+		self.mask_s = mask_s
+		self.mask_l = mask_l
+		self.mask_s_ls = mask_s_ls
+		self.mask_l_ls = mask_l_ls
+		self.gear = gear
+		self.gear_ls = gear_ls
 
 
 class FastCDC:
@@ -136,10 +158,13 @@ class FastCDC:
 		return self.config.max_size
 
 
-@dataclasses.dataclass(frozen=True)
 class _CutResult:
 	gear_hash: int
 	cut_offset: int
+
+	def __init__(self, gear_hash: int, cut_offset: int):
+		self.gear_hash = gear_hash
+		self.cut_offset = cut_offset
 
 
 def _cut_gear(config: _Config, buf: memoryview) -> _CutResult:
@@ -199,10 +224,10 @@ class BufferChunker(Iterator[Chunk]):
 		end_pos = self.offset + res.cut_offset
 
 		chunk = Chunk(
-			gear_hash=res.gear_hash,
 			offset=self.offset,
 			length=res.cut_offset,
 			data=self.buf[self.offset:end_pos],
+			gear_hash=res.gear_hash,
 		)
 		self.offset += res.cut_offset
 		return chunk
@@ -261,8 +286,8 @@ class StreamChunker(Iterator[Chunk]):
 
 		self.last_chunk_len = chunk_len
 		return Chunk(
-			gear_hash=res.gear_hash,
 			offset=self.offset,
 			length=chunk_len,
-			data=memoryview(self.buf)[self.buf_read_len:self.buf_read_len + chunk_len]
+			data=memoryview(self.buf)[self.buf_read_len:self.buf_read_len + chunk_len],
+			gear_hash=res.gear_hash,
 		)

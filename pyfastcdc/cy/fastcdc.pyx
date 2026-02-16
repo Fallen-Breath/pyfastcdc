@@ -189,10 +189,10 @@ cdef class BufferChunker:
 		cdef uint64_t end_pos = self.offset + res.cut_offset
 
 		chunk = Chunk(
-			gear_hash=res.gear_hash,
 			offset=self.offset,
 			length=res.cut_offset,
 			data=memoryview(self.buf[self.offset:end_pos]),
+			gear_hash=res.gear_hash,
 		)
 		self.offset += res.cut_offset
 		return chunk
@@ -278,10 +278,10 @@ cdef class StreamChunker:
 
 		self.last_chunk_len = chunk_len
 		return Chunk(
-			gear_hash=res.gear_hash,
 			offset=self.offset,
 			length=chunk_len,
-			data=memoryview(self.buf_obj)[self.buf_read_len:self.buf_read_len + chunk_len]
+			data=memoryview(self.buf_obj)[self.buf_read_len:self.buf_read_len + chunk_len],
+			gear_hash=res.gear_hash,
 		)
 
 	def __iter__(self):
