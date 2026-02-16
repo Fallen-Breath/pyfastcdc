@@ -246,17 +246,7 @@ cdef class StreamChunker:
 		cdef uint8_t* buf_ptr = &self.buf_view[0]
 
 		if self.last_chunk_len > 0:
-			self.buf_read_len += self.last_chunk_len
-			self.offset += self.last_chunk_len
-			self.last_chunk_len = 0
-			if self.buf_read_len > self.buf_write_len:
-				raise AssertionError(f'buf_read_len {self.buf_read_len} is greater than buf_write_len {self.buf_write_len}')
-
-			remaining_buf_len = self.buf_write_len - self.buf_read_len
-			if remaining_buf_len < self.max_size:
-				memmove(buf_ptr, buf_ptr + self.buf_read_len, remaining_buf_len)
-				self.buf_read_len = 0
-				self.buf_write_len = remaining_buf_len
+			self.__release_last_chunk()
 
 		remaining_buf_len = self.buf_write_len - self.buf_read_len
 		if not self.eof and remaining_buf_len < self.max_size:
@@ -283,6 +273,21 @@ cdef class StreamChunker:
 			data=memoryview(self.buf_obj)[self.buf_read_len:self.buf_read_len + chunk_len],
 			gear_hash=res.gear_hash,
 		)
+
+	cdef __release_last_chunk(self):
+		cdef uint8_t* buf_ptr = &self.buf_view[0]
+
+		self.buf_read_len += self.last_chunk_len
+		self.offset += self.last_chunk_len
+		self.last_chunk_len = 0
+		if self.buf_read_len > self.buf_write_len:
+			raise AssertionError(f'buf_read_len {self.buf_read_len} is greater than buf_write_len {self.buf_write_len}')
+
+		remaining_buf_len = self.buf_write_len - self.buf_read_len
+		if remaining_buf_len < self.max_size:
+			memmove(buf_ptr, buf_ptr + self.buf_read_len, remaining_buf_len)
+			self.buf_read_len = 0
+			self.buf_write_len = remaining_buf_len
 
 	def __iter__(self):
 		return self

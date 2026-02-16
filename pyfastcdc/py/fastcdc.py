@@ -255,17 +255,7 @@ class StreamChunker(Iterator[Chunk]):
 
 	def __next__(self) -> Chunk:
 		if self.last_chunk_len > 0:
-			self.buf_read_len += self.last_chunk_len
-			self.offset += self.last_chunk_len
-			self.last_chunk_len = 0
-			if self.buf_read_len > self.buf_write_len:
-				raise AssertionError(f'buf_read_len {self.buf_read_len} is greater than buf_write_len {self.buf_write_len}')
-
-			remaining_buf_len = self.buf_write_len - self.buf_read_len
-			if remaining_buf_len < self.config.max_size:
-				self.buf[:remaining_buf_len] = self.buf[self.buf_read_len:self.buf_write_len]
-				self.buf_read_len = 0
-				self.buf_write_len = remaining_buf_len
+			self.__release_last_chunk()
 
 		remaining_buf_len = self.buf_write_len - self.buf_read_len
 		if not self.eof and remaining_buf_len < self.config.max_size:
@@ -291,3 +281,16 @@ class StreamChunker(Iterator[Chunk]):
 			data=memoryview(self.buf)[self.buf_read_len:self.buf_read_len + chunk_len],
 			gear_hash=res.gear_hash,
 		)
+
+	def __release_last_chunk(self):
+		self.buf_read_len += self.last_chunk_len
+		self.offset += self.last_chunk_len
+		self.last_chunk_len = 0
+		if self.buf_read_len > self.buf_write_len:
+			raise AssertionError(f'buf_read_len {self.buf_read_len} is greater than buf_write_len {self.buf_write_len}')
+
+		remaining_buf_len = self.buf_write_len - self.buf_read_len
+		if remaining_buf_len < self.config.max_size:
+			self.buf[:remaining_buf_len] = self.buf[self.buf_read_len:self.buf_write_len]
+			self.buf_read_len = 0
+			self.buf_write_len = remaining_buf_len
