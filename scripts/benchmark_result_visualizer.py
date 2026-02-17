@@ -13,8 +13,10 @@ def visualize(csv_path: Path):
 
 	file_names = df['file_name'].unique()
 	num_files = len(file_names)
+	if num_files == 0:
+		raise ValueError(f'No rows found in CSV: {csv_path}')
 
-	cols = 3
+	cols = min(3, num_files)
 	rows = (num_files + cols - 1) // cols
 
 	subplot_width = 8
@@ -22,18 +24,19 @@ def visualize(csv_path: Path):
 	fig_width = subplot_width * cols
 	fig_height = subplot_height * rows
 
-	fig, axes = plt.subplots(rows, cols, figsize=(fig_width, fig_height), dpi=150)
-
-	if num_files == 1:
-		axes = [axes]
-	else:
-		axes = axes.flatten()
+	fig, axes = plt.subplots(
+		rows, cols,
+		figsize=(fig_width, fig_height),
+		dpi=150,
+		squeeze=False,
+	)
+	axes = axes.ravel()
 
 	for idx, file_name in enumerate(file_names):
 		group = df[df['file_name'] == file_name]
 		file_size = group['file_size'].iloc[0]
 		file_size_mib = file_size / 1024 / 1024
-		title = f"{file_name} ({file_size_mib:.0f} MiB)"
+		title = f'{file_name} ({file_size_mib:.0f} MiB)'
 
 		ax = axes[idx]
 		ax.set_title(title, fontsize=16, fontweight='bold')
@@ -43,8 +46,12 @@ def visualize(csv_path: Path):
 		for func_name, func_group in group.groupby('func'):
 			func_group = func_group.sort_values('avg_size')
 			ax.plot(
-				func_group['avg_size'], func_group['mib_per_sec'],
-				marker='o', markersize=8, linewidth=2, label=func_name
+				func_group['avg_size'],
+				func_group['mib_per_sec'],
+				marker='o',
+				markersize=8,
+				linewidth=2,
+				label=func_name,
 			)
 
 		ax.legend(fontsize=12)
@@ -53,8 +60,11 @@ def visualize(csv_path: Path):
 		all_avg_sizes = sorted(group['avg_size'].unique())
 		ax.set_xticks(all_avg_sizes)
 		ax.set_xticklabels(
-			[f"{int(x / 1024)}K" if x < 1024 * 1024 else f"{int(x / 1024 / 1024)}M" for x in all_avg_sizes],
-			fontsize=12
+			[
+				f'{int(x / 1024)}K' if x < 1024 * 1024 else f'{int(x / 1024 / 1024)}M'
+				for x in all_avg_sizes
+			],
+			fontsize=12,
 		)
 
 		ax.tick_params(axis='y', labelsize=12)
