@@ -53,6 +53,15 @@ def get_version() -> str:
 
 
 class BuildExt(build_ext):
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+
+		try:
+			from Cython import __version__ as cython_version
+		except ImportError:
+			cython_version = 'N/A'
+		print(f'Cython version: {cython_version}')
+
 	@classmethod
 	@contextlib.contextmanager
 	def __wrap_ext_err(cls):
@@ -66,7 +75,7 @@ class BuildExt(build_ext):
 
 	def run(self):
 		with self.__wrap_ext_err():
-			build_ext.run(self)
+			super().run()
 
 	def build_extensions(self):
 		with self.__wrap_ext_err():
