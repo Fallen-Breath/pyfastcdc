@@ -44,7 +44,7 @@ for chunk in FastCDC(16384).cut_file('archive.tar'):
 	print(chunk.offset, chunk.length, hashlib.sha256(chunk.data).hexdigest())
 ```
 
-See [docstrings](pyfastcdc/cy/fastcdc.pyi) of exported objects in the `pyfastcdc` module for more API details
+See [docstrings](pyfastcdc/__init__.pyi) of exported objects in the `pyfastcdc` module for more API details
 
 Please only import members from `pyfastcdc` in your application code and avoid importing inner modules (e.g. `pyfastcdc.common`) directly.
 Only public APIs inside the `pyfastcdc` module are guaranteed to be stable across releases

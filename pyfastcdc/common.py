@@ -12,12 +12,4 @@ class _BinaryStreamReaderWithReadinto(Protocol):
 
 
 BinaryStreamReader = Union[_BinaryStreamReaderWithRead, _BinaryStreamReaderWithReadinto]
-"""
-A reader object that supports ``read()`` or ``readinto()`` methods.
-``readinto()`` is preferred since it's faster than ``read()``
-"""
-
 NormalizedChunking = Literal[0, 1, 2, 3]
-"""
-The normalized chunking parameter (NC) from the paper
-"""
