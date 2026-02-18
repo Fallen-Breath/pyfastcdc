@@ -6,12 +6,10 @@
 
 A FastCDC 2020 implementation written in Python, with [Cython](https://github.com/cython/cython) acceleration
 
-Supports Python 3.6+
+Supports Python 3.6+. Provides prebuilt wheels for Python 3.8+
 
 Its core algorithm implementation is a direct port of the v2020 module from [nlfiedler/fastcdc-rs](https://github.com/nlfiedler/fastcdc-rs),
 which means that the output of PyFastCDC completely matches the output of nlfiedler/fastcdc-rs
-
-**Still under development**
 
 ## Installation
 
@@ -31,7 +29,12 @@ which is significantly slower (around 0.01× or less in memory chunking speed)
 
 ## Usage
 
-TODO
+The basic usage is simple:
+
+1. Construct a `FastCDC` instance with desired parameters
+2. Call `FastCDC.cut_xxx()` function to chunk your data
+
+Example:
 
 ```python
 import hashlib
@@ -40,6 +43,8 @@ from pyfastcdc import FastCDC
 for chunk in FastCDC(16384).cut_file('archive.tar'):
 	print(chunk.offset, chunk.length, hashlib.sha256(chunk.data).hexdigest())
 ```
+
+See docstrings of exported objects in the `pyfastcdc` module for more API details
 
 Please only import members from `pyfastcdc` in your application code and avoid importing inner modules (e.g. `pyfastcdc.common`) directly.
 Only public APIs inside the `pyfastcdc` module are guaranteed to be stable across releases
