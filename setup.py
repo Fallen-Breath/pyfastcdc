@@ -56,12 +56,6 @@ class BuildExt(build_ext):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 
-		try:
-			from Cython import __version__ as cython_version
-		except ImportError:
-			cython_version = 'N/A'
-		print(f'Cython version: {cython_version}')
-
 	@classmethod
 	@contextlib.contextmanager
 	def __wrap_ext_err(cls):
@@ -94,6 +88,12 @@ else:
 
 print(f'setuptools_version: {setuptools_version}')
 use_license_expression = parse_major(setuptools_version) >= 77
+try:
+	from Cython import __version__ as cython_version
+except ImportError:
+	cython_version = 'N/A'
+print(f'Cython version: {cython_version}')
+
 setup(
 	name='pyfastcdc',
 	version=get_version(),
