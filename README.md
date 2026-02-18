@@ -116,5 +116,6 @@ Papers
 
 Other FastCDC Implementations
 
+- [HIT-HSSL/destor](https://github.com/HIT-HSSL/destor/blob/master/src/chunking/fascdc_chunking.c), the C implementation reference from the paper
 - [nlfiedler/fastcdc-rs](https://github.com/nlfiedler/fastcdc-rs), where this implementation is based on
 - [iscc/fastcdc-py](https://github.com/iscc/fastcdc-py), which provides an alternative FastCDC implementation based on [ronomon/deduplication](https://github.com/ronomon/deduplication)
