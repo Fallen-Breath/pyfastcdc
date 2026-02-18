@@ -48,6 +48,7 @@ class _Config:
 		self.gear_ls = gear_ls
 
 
+# docstrings are in pyfastcdc/__init__.pyi
 class FastCDC:
 	MIN_SIZE_LOWER_BOUND: ClassVar[int] = 64
 	AVG_SIZE_LOWER_BOUND: ClassVar[int] = 256

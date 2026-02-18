@@ -32,7 +32,7 @@ cdef uint64_t AVG_SIZE_UPPER_BOUND = 4 * 1048576
 cdef uint64_t MAX_SIZE_UPPER_BOUND = 16 * 1048576
 
 
-# see the .pyi file for docstrings
+# docstrings are in pyfastcdc/__init__.pyi
 cdef class FastCDC:
 	cdef _Config config
 	cdef uint64_t* gear_holder
