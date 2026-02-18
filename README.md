@@ -76,7 +76,7 @@ FastCDC parameters:
 
 Test environment:
 
-- PyFastCDC 0.1.1b, precompiled wheel from Test PyPI, Cython 3.2.4
+- PyFastCDC 0.2.0b1, precompiled wheel from Test PyPI, Cython 3.2.4
 - Python 3.11.14 using docker image `python:3.11`
 - Ryzen 7 6800H @ 4.55GHz, NVMe SSD, Debian 13.2
 
