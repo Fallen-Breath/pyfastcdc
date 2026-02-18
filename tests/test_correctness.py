@@ -3,12 +3,12 @@ import io
 import random
 from io import BytesIO
 from pathlib import Path
-from typing import Dict, Tuple, List, NamedTuple, Iterable
+from typing import Dict, Tuple, List, NamedTuple
 
 import pytest
 
-from pyfastcdc import FastCDC as FastCDC_cy
-from pyfastcdc.common import NormalizedChunking, Chunk
+from pyfastcdc.common import NormalizedChunking
+from pyfastcdc.cy import FastCDC as FastCDC_cy
 from pyfastcdc.py import FastCDC as FastCDC_py
 from tests.utils import FastCDCType
 

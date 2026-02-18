@@ -2,7 +2,8 @@ import array
 from pathlib import Path
 from typing import Optional, ClassVar, Union, Iterator
 
-from pyfastcdc import utils, NormalizedChunking, Chunk, BinaryStreamReader
+from pyfastcdc import utils, NormalizedChunking, BinaryStreamReader
+from pyfastcdc.py.chunk import Chunk
 from pyfastcdc.py.constants import MASKS, GEAR, GEAR_LS
 from pyfastcdc.utils import ReadintoFunc
 

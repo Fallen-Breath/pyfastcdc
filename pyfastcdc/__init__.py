@@ -9,13 +9,12 @@ __all__ = [
 
 from pyfastcdc.common import (
 	BinaryStreamReader,
-	Chunk,
 	NormalizedChunking,
 )
 
 try:
-	from pyfastcdc.cy import FastCDC
+	from pyfastcdc.cy import FastCDC, Chunk
 except ImportError:
-	from pyfastcdc.py import FastCDC
+	from pyfastcdc.py import FastCDC, Chunk
 	import warnings
 	warnings.warn('Failed to import pyfastcdc cython extension, fallback to pure python implementation with is a lot slower.')

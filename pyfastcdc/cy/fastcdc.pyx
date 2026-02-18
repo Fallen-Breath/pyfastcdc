@@ -6,7 +6,8 @@ from cpython.mem cimport PyMem_Malloc, PyMem_Free
 from libc.stdint cimport uint8_t, uint32_t, uint64_t
 from libc.string cimport memmove
 
-from pyfastcdc import utils, NormalizedChunking, Chunk, BinaryStreamReader
+from pyfastcdc import utils, NormalizedChunking, BinaryStreamReader
+from pyfastcdc.cy.chunk cimport Chunk
 from pyfastcdc.cy.constants cimport GEAR, GEAR_LS, MASKS
 from pyfastcdc.utils import ReadintoFunc
 
@@ -192,7 +193,7 @@ cdef class BufferChunker:
 			res = _cut_gear(self.config, remaining_buf, remaining_len)
 		cdef uint64_t end_pos = self.offset + res.cut_offset
 
-		chunk = Chunk(
+		chunk = Chunk._cy_create(
 			offset=self.offset,
 			length=res.cut_offset,
 			data=self.buf[self.offset:end_pos],
