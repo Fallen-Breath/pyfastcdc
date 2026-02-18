@@ -3,6 +3,8 @@ from typing import Optional, Union, Iterator
 
 from typing_extensions import Protocol, Literal
 
+__version__: str
+
 
 class _BinaryStreamReaderWithRead(Protocol):
 	def read(self, n: int) -> bytes: ...
