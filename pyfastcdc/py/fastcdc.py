@@ -2,7 +2,8 @@ import array
 from pathlib import Path
 from typing import Optional, ClassVar, Union, Iterator
 
-from pyfastcdc import utils, NormalizedChunking, BinaryStreamReader
+from pyfastcdc import utils
+from pyfastcdc.common import BinaryStreamReader, NormalizedChunking
 from pyfastcdc.py.chunk import Chunk
 from pyfastcdc.py.constants import MASKS, GEAR, GEAR_LS
 from pyfastcdc.utils import ReadintoFunc
@@ -241,7 +242,7 @@ class StreamChunker(Iterator[Chunk]):
 
 		res = _cut_gear(self.config, memoryview(self.buf)[self.buf_read_len:self.buf_write_len])
 		chunk_len = res.cut_offset
-		if res.cut_offset <= 0:  # last part of the file
+		if res.cut_offset == 0:  # last part of the file
 			chunk_len = remaining_buf_len
 
 		self.last_chunk_len = chunk_len

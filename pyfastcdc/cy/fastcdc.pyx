@@ -6,7 +6,8 @@ from cpython.mem cimport PyMem_Malloc, PyMem_Free
 from libc.stdint cimport uint8_t, uint32_t, uint64_t
 from libc.string cimport memmove
 
-from pyfastcdc import utils, NormalizedChunking, BinaryStreamReader
+from pyfastcdc import utils
+from pyfastcdc.common import BinaryStreamReader, NormalizedChunking
 from pyfastcdc.cy.chunk cimport Chunk
 from pyfastcdc.cy.constants cimport GEAR, GEAR_LS, MASKS
 from pyfastcdc.utils import ReadintoFunc
