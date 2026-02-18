@@ -57,6 +57,10 @@ With the help of Cython, PyFastCDC can achieve near-native performance on chunki
 
 Each test was run 10 times for averaging, achieving a maximum in-memory chunking speed of about 4.8GB/s
 
+<details>
+
+<summary>Benchmark details</summary>
+
 FastCDC parameters:
 
 - `avg_size`: Independent variable
@@ -67,7 +71,8 @@ FastCDC parameters:
 
 Test environment:
 
-- Python 3.11.14, Cython 3.2.4
+- PyFastCDC 0.1.1b, precompiled wheel from Test PyPI, Cython 3.2.4
+- Python 3.11.14 using docker image `python:3.11`
 - Ryzen 7 6800H @ 4.55GHz, NVMe SSD, Debian 13.2
 
 Test files:
@@ -82,6 +87,8 @@ Test command:
 cd scripts
 python benchmark.py --test-files rand_10G.bin AlmaLinux-10.1-x86_64-dvd.iso llvmorg-21.1.8.tar
 ```
+
+</details>
 
 ## Difference from iscc/fastcdc-py
 
