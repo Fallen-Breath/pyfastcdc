@@ -7,6 +7,8 @@ from pyfastcdc.common import NormalizedChunking, BinaryStreamReader, Chunk
 class FastCDC:
 	"""
 	The FastCDC 2020 chunker implementation (cython version)
+
+	Paper: https://ieeexplore.ieee.org/document/9055082
 	"""
 
 	def __init__(
@@ -18,6 +20,29 @@ class FastCDC:
 			normalized_chunking: NormalizedChunking = 1,
 			seed: int = 0,
 	):
+		"""
+		Construct a FastCDC instance for chunking. The instance can be reused for multiple chunking operations
+
+		:param avg_size: Specifies the average output chunk size. Suggested to be a power of 2.
+			Note: The actual output average chunk size is ``avg_size + min_size``,
+			as described in the paper section 3.4 "Cut-Point Skipping".
+			Default is 16384, should be within [256, 4194304]
+		:keyword min_size: Specifies the minimum constraint for the output chunk size.
+			Default is None, meaning ``avg_size // 4``. The value should be within [64, 1048576]
+		:keyword max_size: Specifies the maximum constraint for the output chunk size.
+			Default is None, meaning ``avg_size * 4``. The value should be within [1024, 16777216]
+		:keyword normalized_chunking: Defines the normalized chunking parameter (NC) from the paper.
+			Increasing the value will decrease the number of too-small / too-big chunks
+			and might also decrease the deduplication ratio if NC is set to too high.
+			The default NC value is 1, aligning with https://github.com/nlfiedler/fastcdc-rs.
+			See the paper for more details:
+			1. Section 3.5 "Normalized Chunking" on how NC works
+			2. Section 4.4 "Evaluation of Normalized Chunking" on evaluation results for different NC values
+		:keyword seed: Provides an optional seed value to alternate the gear table.
+			Default is 0, meaning using the default gear table from the C reference repository from the paper
+			(https://github.com/HIT-HSSL/destor/blob/master/src/chunking/fascdc_chunking.c)
+			will be used
+		"""
 		...
 
 	def cut_buf(self, buf: Union[bytes, bytearray, memoryview]) -> Iterator[Chunk]:

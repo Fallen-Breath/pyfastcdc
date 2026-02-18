@@ -67,5 +67,5 @@ A reader object that supports ``read()`` or ``readinto()`` methods.
 
 NormalizedChunking = Literal[0, 1, 2, 3]
 """
-The normalized chunking parameter from the paper
+The normalized chunking parameter (NC) from the paper
 """

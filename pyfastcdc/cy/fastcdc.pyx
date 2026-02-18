@@ -10,7 +10,6 @@ from pyfastcdc import utils, NormalizedChunking, Chunk, BinaryStreamReader
 from pyfastcdc.cy.constants cimport GEAR, GEAR_LS, MASKS
 from pyfastcdc.utils import ReadintoFunc
 
-
 cdef struct _Config:
 	uint32_t avg_size
 	uint32_t min_size
@@ -31,6 +30,7 @@ cdef uint64_t AVG_SIZE_UPPER_BOUND = 4 * 1048576
 cdef uint64_t MAX_SIZE_UPPER_BOUND = 16 * 1048576
 
 
+# see the .pyi file for docstrings
 cdef class FastCDC:
 	cdef _Config config
 	cdef uint64_t* gear_holder
