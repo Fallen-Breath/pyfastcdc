@@ -50,8 +50,8 @@ Please only import members from `pyfastcdc` in your application code and avoid i
 Only public APIs inside the `pyfastcdc` module are guaranteed to be stable across releases
 
 ```python
-from pyfastcdc import Chunk         # GOOD
-from pyfastcdc.common import Chunk  # BAD, no API stability guarantee
+from pyfastcdc import NormalizedChunking         # GOOD
+from pyfastcdc.common import NormalizedChunking  # BAD, no API stability guarantee
 ```
 
 ## Performance
