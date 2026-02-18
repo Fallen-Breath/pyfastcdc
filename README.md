@@ -4,7 +4,7 @@
 [![Issues](https://img.shields.io/github/issues/Fallen-Breath/pyfastcdc.svg)](https://github.com/Fallen-Breath/pyfastcdc/issues)
 [![PyPI Version](https://img.shields.io/pypi/v/pyfastcdc.svg?label=PyPI)](https://pypi.org/project/pyfastcdc)
 
-A FastCDC 2020 implementation written in Python, with [Cython](https://github.com/cython/cython) acceleration
+A high-performance FastCDC 2020 implementation written in Python + [Cython](https://github.com/cython/cython)
 
 Supports Python 3.6+. Provides prebuilt wheels for Python 3.8+
 
@@ -29,10 +29,13 @@ which is significantly slower (around 0.01× or less in memory chunking speed)
 
 ## Usage
 
-The basic usage is simple:
+The usage of PyFastCDC is simple:
 
 1. Construct a `FastCDC` instance with desired parameters
-2. Call `FastCDC.cut_xxx()` function to chunk your data
+2. Call `FastCDC.cut_xxx()` function to chunk your input data
+  - Call `cut_buf()` to chunk in-memory data buffers
+  - Call `cut_file()` to chunk a regular file using mmap
+  - Call `cut_stream()` to chunk a custom file-like streaming object
 
 Example:
 

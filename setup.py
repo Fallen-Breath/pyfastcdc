@@ -97,7 +97,7 @@ print(f'Cython version: {cython_version}')
 setup(
 	name='pyfastcdc',
 	version=get_version(),
-	description='FastCDC 2020 implementation in Python, with Cython acceleration',
+	description='A high-performance FastCDC 2020 implementation written in Python + Cython',
 	long_description=read_file('README.md'),
 	long_description_content_type='text/markdown',
 	author='Fallen_Breath',
