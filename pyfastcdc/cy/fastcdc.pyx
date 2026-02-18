@@ -122,7 +122,8 @@ cdef struct _CutResult:
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-cdef _CutResult _cut_gear(const _Config* config, const uint8_t* buf, uint64_t buf_len):
+@cython.cdivision(True)
+cdef _CutResult _cut_gear(const _Config* config, const uint8_t* buf, uint64_t buf_len) noexcept nogil:
 	cdef uint64_t remaining = buf_len
 	if remaining <= config.min_size:
 		return _CutResult(0, remaining)
@@ -184,14 +185,17 @@ cdef class BufferChunker:
 		if self.offset >= self.buf_capacity:
 			raise StopIteration()
 
-		cdef remaining_len = self.buf_capacity - self.offset
-		cdef _CutResult res = _cut_gear(self.config, &self.buf_view[0] + self.offset, remaining_len)
+		cdef const uint8_t* remaining_buf = &self.buf_view[0] + self.offset
+		cdef uint64_t remaining_len = self.buf_capacity - self.offset
+		cdef _CutResult res
+		with nogil:
+			res = _cut_gear(self.config, remaining_buf, remaining_len)
 		cdef uint64_t end_pos = self.offset + res.cut_offset
 
 		chunk = Chunk(
 			offset=self.offset,
 			length=res.cut_offset,
-			data=memoryview(self.buf[self.offset:end_pos]),
+			data=self.buf[self.offset:end_pos],
 			gear_hash=res.gear_hash,
 		)
 		self.offset += res.cut_offset
@@ -221,6 +225,7 @@ cdef class StreamChunker:
 
 	cdef uint64_t buf_capacity
 	cdef bytearray buf_obj
+	cdef memoryview buf_obj_mv
 	cdef uint8_t[:] buf_view
 	cdef uint64_t buf_read_len
 	cdef uint64_t buf_write_len
@@ -237,12 +242,14 @@ cdef class StreamChunker:
 
 		self.buf_capacity = self.max_size + max(8 * 1024u, self.config.max_size)
 		self.buf_obj = bytearray(self.buf_capacity)
+		self.buf_obj_mv = memoryview(self.buf_obj)
 		self.buf_view = self.buf_obj
 		self.buf_read_len = 0
 		self.buf_write_len = 0
 
 	def __next__(self) -> Chunk:
-		cdef uint64_t remaining_buf_len
+		cdef uint64_t remaining_buf_len = 0
+		cdef Py_ssize_t n_read = 0
 		cdef uint8_t* buf_ptr = &self.buf_view[0]
 
 		if self.last_chunk_len > 0:
@@ -251,8 +258,8 @@ cdef class StreamChunker:
 		remaining_buf_len = self.buf_write_len - self.buf_read_len
 		if not self.eof and remaining_buf_len < self.max_size:
 			while self.buf_write_len < self.buf_capacity:
-				n_read = self.readinto_func(memoryview(self.buf_obj)[self.buf_write_len:])
-				if n_read == 0:
+				n_read = self.readinto_func(self.buf_obj_mv[self.buf_write_len:])
+				if n_read <= 0:
 					self.eof = 1
 					break
 				self.buf_write_len += n_read
@@ -261,7 +268,10 @@ cdef class StreamChunker:
 		if remaining_buf_len == 0:
 			raise StopIteration()
 
-		cdef _CutResult res = _cut_gear(self.config, buf_ptr + self.buf_read_len, remaining_buf_len)
+		cdef _CutResult res
+		with nogil:
+			res = _cut_gear(self.config, buf_ptr + self.buf_read_len, remaining_buf_len)
+
 		cdef uint64_t chunk_len = res.cut_offset
 		if chunk_len == 0:  # last part of the file
 			chunk_len = remaining_buf_len
@@ -270,7 +280,7 @@ cdef class StreamChunker:
 		return Chunk(
 			offset=self.offset,
 			length=chunk_len,
-			data=memoryview(self.buf_obj)[self.buf_read_len:self.buf_read_len + chunk_len],
+			data=self.buf_obj_mv[self.buf_read_len:self.buf_read_len + chunk_len],
 			gear_hash=res.gear_hash,
 		)
 
@@ -283,7 +293,7 @@ cdef class StreamChunker:
 		if self.buf_read_len > self.buf_write_len:
 			raise AssertionError(f'buf_read_len {self.buf_read_len} is greater than buf_write_len {self.buf_write_len}')
 
-		remaining_buf_len = self.buf_write_len - self.buf_read_len
+		cdef uint64_t remaining_buf_len = self.buf_write_len - self.buf_read_len
 		if remaining_buf_len < self.max_size:
 			memmove(buf_ptr, buf_ptr + self.buf_read_len, remaining_buf_len)
 			self.buf_read_len = 0
