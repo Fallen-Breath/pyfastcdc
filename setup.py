@@ -1,6 +1,7 @@
 import ast
 import contextlib
 import functools
+import os
 import sys
 from pathlib import Path
 from typing import List
@@ -59,12 +60,20 @@ class BuildExt(build_ext):
 	@classmethod
 	@contextlib.contextmanager
 	def __wrap_ext_err(cls):
+		require_cython = os.environ.get('PYFASTCDC_REQUIRE_CYTHON', '').lower() in ['true', '1']
 		try:
 			yield
 		except Exception as e:
+			if require_cython:
+				print("###########################################################################################################", file=sys.stderr)
+				print("Failed to compile pyfastcdc Cython extension, fail hard since PYFASTCDC_REQUIRE_CYTHON is set to true", file=sys.stderr)
+				print("Unset PYFASTCDC_REQUIRE_CYTHON to allow pure-Python fallback if that's acceptable for your use case.", file=sys.stderr)
+				print(type(e), e, file=sys.stderr)
+				print("###########################################################################################################", file=sys.stderr)
+				raise e
 			print("###########################################################################################################", file=sys.stderr)
-			print("Failed to compile pyfastcdc cython extension, fallback to pure python implementation with is a lot slower", file=sys.stderr)
-			print(e)
+			print("Failed to compile pyfastcdc Cython extension, fallback to pure python implementation with is a lot slower", file=sys.stderr)
+			print(type(e), e, file=sys.stderr)
 			print("###########################################################################################################", file=sys.stderr)
 
 	def run(self):
