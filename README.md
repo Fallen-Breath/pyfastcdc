@@ -25,14 +25,14 @@ For platforms without prebuilt wheels, a suitable build environment capable of c
 For example, on Debian, you might need to install `gcc` and `python3-dev` via `apt`
 
 If the Cython extension fails to compile, the installation will fall back to a pure Python implementation,
-which is significantly slower (around 0.01× or less in memory chunking speed)
+which is significantly slower (about 0.5% or less in memory chunking speed)
 
 ## Usage
 
 The usage of PyFastCDC is simple:
 
 1. Construct a `FastCDC` instance with desired parameters
-2. Call `FastCDC.cut_xxx()` function to chunk your input data
+2. Call `FastCDC.cut_xxx()` function to chunk your data
     - Call `cut_buf()` to chunk in-memory data buffers
     - Call `cut_file()` to chunk a regular file using mmap
     - Call `cut_stream()` to chunk a custom file-like streaming object
