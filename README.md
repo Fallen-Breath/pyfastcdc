@@ -27,6 +27,35 @@ For example, on Debian, you might need to install `gcc` and `python3-dev` via `a
 If the Cython extension fails to compile, the installation will fall back to a pure Python implementation,
 which is significantly slower (about 0.5% or less in memory chunking speed)
 
+<details>
+
+<summary>I only want to use the Cython implemetion, not the slow pure-Python one</summary>
+
+You can set the environment variable `PYFASTCDC_REQUIRE_CYTHON=true` or `PYFASTCDC_REQUIRE_CYTHON=1` for the `pip` installation command
+to disable the pure-Python fallback on extension compilation error and make the installation fail hard.
+Thus, after a successful installation, you will always have a working Cython extension
+
+Example bash command using `pip`:
+
+```
+$ PYFASTCDC_REQUIRE_CYTHON=true pip install pyfastcdc
+... some pip output ...
+Building wheels for collected packages: pyfastcdc
+  Building wheel for pyfastcdc (pyproject.toml) ... error
+  ... some pip output ...
+  ###########################################################################################################
+  Failed to compile pyfastcdc Cython extension, fail hard since PYFASTCDC_REQUIRE_CYTHON is set to true
+  Unset PYFASTCDC_REQUIRE_CYTHON to allow pure-Python fallback if that's acceptable for your use case.
+  <class 'distutils.compilers.C.errors.CompileError'> command 'gcc' failed: No such file or directory
+  ###########################################################################################################
+  error: command 'gcc' failed: No such file or directory
+  ----------------------------------------
+  ERROR: Failed building wheel for pyfastcdc
+  ... some pip output ...
+```
+
+</details>
+
 ## Usage
 
 The usage of PyFastCDC is simple:
