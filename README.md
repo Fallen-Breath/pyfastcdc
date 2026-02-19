@@ -33,9 +33,9 @@ The usage of PyFastCDC is simple:
 
 1. Construct a `FastCDC` instance with desired parameters
 2. Call `FastCDC.cut_xxx()` function to chunk your input data
-  - Call `cut_buf()` to chunk in-memory data buffers
-  - Call `cut_file()` to chunk a regular file using mmap
-  - Call `cut_stream()` to chunk a custom file-like streaming object
+    - Call `cut_buf()` to chunk in-memory data buffers
+    - Call `cut_file()` to chunk a regular file using mmap
+    - Call `cut_stream()` to chunk a custom file-like streaming object
 
 Example:
 
