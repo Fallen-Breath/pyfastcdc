@@ -29,7 +29,7 @@ which is significantly slower (about 0.5% or less in memory chunking speed)
 
 <details>
 
-<summary>I only want to use the Cython implemetion, not the slow pure-Python one</summary>
+<summary>I only want to use the Cython implementation, not the slow pure-Python one</summary>
 
 You can set the environment variable `PYFASTCDC_REQUIRE_CYTHON=true` or `PYFASTCDC_REQUIRE_CYTHON=1` for the `pip` installation command
 to disable the pure-Python fallback on extension compilation error and make the installation fail hard.
