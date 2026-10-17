@@ -6,7 +6,7 @@
 
 A high-performance FastCDC 2020 implementation written in Python + [Cython](https://github.com/cython/cython)
 
-Supports Python 3.6+. Provides prebuilt wheels for Python 3.8+
+Supports Python 3.6+. Provides prebuilt wheels for Python 3.9+
 
 Its core algorithm implementation is a direct port of the v2020 module from [nlfiedler/fastcdc-rs](https://github.com/nlfiedler/fastcdc-rs),
 which means that the output of PyFastCDC completely matches the output of nlfiedler/fastcdc-rs
