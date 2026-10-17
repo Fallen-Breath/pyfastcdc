@@ -52,7 +52,28 @@ jobs:
           cat "$GITHUB_OUTPUT"
 
   pypi_upload:
-    name: Publish package to (Test)PyPI
+    name: Publish package to PyPI
+    needs: [ test, build, evaluate ]
+
+    # https://docs.pypi.org/trusted-publishers/using-a-publisher/
+    environment: pypi_release
+    permissions:
+      id-token: write
+
+    runs-on: ubuntu-latest
+    if: ${{ needs.evaluate.outputs.is_tagged_release == 'true' }}
+    steps:
+      - uses: actions/download-artifact@v5
+        with:
+          pattern: cibw-*
+          path: dist
+          merge-multiple: true
+
+      - name: Publish distribution to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+
+  pypi_upload_test:
+    name: Publish package to TestPyPI
     needs: [ test, build, evaluate ]
 
     # https://docs.pypi.org/trusted-publishers/using-a-publisher/
@@ -73,9 +94,3 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           repository-url: https://test.pypi.org/legacy/
-          # https://github.com/pypa/gh-action-pypi-publish/issues/283
-          attestations: false
-
-      - name: Publish distribution to PyPI
-        if: ${{ needs.evaluate.outputs.is_tagged_release == 'true' }}
-        uses: pypa/gh-action-pypi-publish@release/v1
