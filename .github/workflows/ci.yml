@@ -63,7 +63,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ needs.evaluate.outputs.is_tagged_release == 'true' }}
     steps:
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v8
         with:
           pattern: cibw-*
           path: dist
@@ -84,7 +84,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ needs.evaluate.outputs.should_publish == 'true' }}
     steps:
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v8
         with:
           pattern: cibw-*
           path: dist
