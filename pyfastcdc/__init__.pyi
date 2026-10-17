@@ -30,6 +30,8 @@ class FastCDC:
 	"""
 	The FastCDC 2020 chunker implementation
 
+	The object is not concurrent-proof, avoid using it concurrently
+
 	Paper: https://ieeexplore.ieee.org/document/9055082
 	"""
 

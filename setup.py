@@ -92,7 +92,10 @@ else:
 	from Cython.Build import cythonize
 	ext_modules = cythonize(
 		'pyfastcdc/cy/*.pyx',
-		compiler_directives={'language_level': '3'},
+		compiler_directives={
+			'language_level': '3',
+			**({'freethreading_compatible': True} if sys.version_info >= (3, 13) else {}),
+		},
 	)
 
 print(f'setuptools_version: {setuptools_version}')
